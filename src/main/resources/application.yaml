@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: case
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/case_db
+    username: case_user
+    password: case_pass
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
