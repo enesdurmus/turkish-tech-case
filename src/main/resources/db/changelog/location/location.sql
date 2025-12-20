@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS location
     name          VARCHAR(100) NOT NULL,
     country       VARCHAR(250) NOT NULL,
     city          VARCHAR(250) NOT NULL,
-    location_code VARCHAR(10)  NOT NULL,
+    location_code VARCHAR(10)  NOT NULL UNIQUE,
     created_at    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at    TIMESTAMP             DEFAULT NULL
 );
