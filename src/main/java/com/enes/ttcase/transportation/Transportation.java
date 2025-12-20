@@ -16,8 +16,11 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.List;
 
 @Getter
 @Setter
@@ -33,16 +36,20 @@ public class Transportation {
     private long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "origin")
+    @JoinColumn(name = "origin_id")
     private Location origin;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "destination")
+    @JoinColumn(name = "destination_id")
     private Location destination;
 
     @Enumerated(EnumType.ORDINAL)
     @Column(name = "transportation_type")
     private TransportationType transportationType;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "operating_days", columnDefinition = "integer[]")
+    private List<Integer> operatingDays;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;
