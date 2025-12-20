@@ -1,6 +1,6 @@
 spring:
   application:
-    name: case
+    name: enes-durmus-case
 
   datasource:
     url: jdbc:postgresql://localhost:5432/case_db

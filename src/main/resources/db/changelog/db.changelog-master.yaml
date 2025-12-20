@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - includeAll:
+      path: db/changelog/functions
+
+  - includeAll:
+      path: db/changelog/location
+
+  - includeAll:
+      path: db/changelog/transportation
