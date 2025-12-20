@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.enes</groupId>
-	<artifactId>case</artifactId>
+	<artifactId>ttcase</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>case</name>
+	<name>ttcase</name>
 	<description>Enes Durmus Turkish Technology Case</description>
 	<url/>
 	<licenses>
