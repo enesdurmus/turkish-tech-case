@@ -1,6 +1,5 @@
 package com.enes.ttcase.route;
 
-import com.enes.ttcase.transportation.TransportationDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -9,7 +8,7 @@ import java.util.List;
 class DfsRouteFinder implements RouteFinder {
 
     @Override
-    public List<TransportationDto> findRoute(FindRouteRequest request) {
+    public List<Route> findRoute(FindRouteRequest request) {
         return List.of();
     }
 }

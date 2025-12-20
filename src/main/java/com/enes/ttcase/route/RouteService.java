@@ -1,6 +1,5 @@
 package com.enes.ttcase.route;
 
-import com.enes.ttcase.transportation.TransportationDto;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,7 +9,7 @@ public class RouteService {
 
     private RouteFinder routeFinder;
 
-    public List<TransportationDto> searchRoute(FindRouteRequest request) {
+    public List<Route> searchRoute(FindRouteRequest request) {
         return routeFinder.findRoute(request);
     }
 }
