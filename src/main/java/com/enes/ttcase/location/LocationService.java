@@ -51,4 +51,8 @@ public class LocationService {
     public void deleteLocation(long id) {
         locationRepository.deleteById(id);
     }
+
+    public Location getReference(long id) {
+        return locationRepository.getReferenceById(id);
+    }
 }

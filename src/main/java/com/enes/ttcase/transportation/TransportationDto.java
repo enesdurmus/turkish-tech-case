@@ -1,14 +1,16 @@
 package com.enes.ttcase.transportation;
 
-import com.enes.ttcase.location.Location;
+import com.enes.ttcase.location.LocationDto;
 
 import java.time.Instant;
+import java.util.List;
 
 public record TransportationDto(
         long id,
-        Location origin,
-        Location destination,
+        LocationDto origin,
+        LocationDto destination,
         TransportationType transportationType,
+        List<Integer> operatingDays,
         Instant createdAt,
         Instant updatedAt
 ) {

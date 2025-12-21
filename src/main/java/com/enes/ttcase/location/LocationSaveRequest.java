@@ -1,9 +1,11 @@
 package com.enes.ttcase.location;
 
+import jakarta.validation.constraints.NotEmpty;
+
 public record LocationSaveRequest(
-        String name,
-        String country,
-        String city,
-        String locationCode
+        @NotEmpty String name,
+        @NotEmpty String country,
+        @NotEmpty String city,
+        @NotEmpty String locationCode
 ) {
 }
