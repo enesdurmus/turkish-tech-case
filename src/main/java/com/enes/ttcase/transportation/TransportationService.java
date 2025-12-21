@@ -37,8 +37,8 @@ public class TransportationService {
 
     public TransportationDto createTransportation(TransportationSaveRequest request) {
         Transportation transportation = new Transportation();
-        transportation.setOrigin(locationService.getReference(request.originId()));
-        transportation.setDestination(locationService.getReference(request.destinationId()));
+        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originLocationCode()));
+        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationLocationCode()));
         transportation.setOperatingDays(request.operatingDays());
         transportation.setTransportationType(request.transportationType());
         return mapper.toDto(repository.save(transportation));
@@ -47,8 +47,8 @@ public class TransportationService {
     @Transactional
     public @Nullable TransportationDto updateTransportation(long id, @Valid TransportationSaveRequest request) {
         Transportation transportation = repository.findById(id).orElseThrow(EntityNotFoundException::new);
-        transportation.setOrigin(locationService.getReference(request.originId()));
-        transportation.setDestination(locationService.getReference(request.destinationId()));
+        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originLocationCode()));
+        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationLocationCode()));
         transportation.setOperatingDays(request.operatingDays());
         transportation.setTransportationType(request.transportationType());
         return mapper.toDto(repository.save(transportation));

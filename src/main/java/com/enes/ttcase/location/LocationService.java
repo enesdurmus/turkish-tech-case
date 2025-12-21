@@ -57,7 +57,11 @@ public class LocationService {
     }
 
     public LocationDto findByLocationCode(String locationCode) {
-        return mapper.toDto(repository.findByLocationCode(locationCode));
+        return mapper.toDto(getReferenceByLocationCode(locationCode));
+    }
+
+    public Location getReferenceByLocationCode(String locationCode) {
+        return repository.findByLocationCode(locationCode);
     }
 
 }

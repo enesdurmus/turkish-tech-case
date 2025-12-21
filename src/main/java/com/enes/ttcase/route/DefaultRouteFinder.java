@@ -28,10 +28,10 @@ class DefaultRouteFinder implements RouteFinder {
 
         while (!stack.isEmpty()) {
             SearchState currentState = stack.pop();
-            LocationDto currentLoc = currentState.location;
+            LocationDto currentLocation = currentState.location;
             List<TransportationDto> currentPath = currentState.path;
 
-            if (currentLoc.equals(context.destination())) {
+            if (currentLocation.equals(context.destination())) {
                 if (containsFlight(currentPath)) {
                     validRoutes.add(new Route(currentPath));
                 }
@@ -42,8 +42,8 @@ class DefaultRouteFinder implements RouteFinder {
                 continue;
             }
 
-            if (graph.containsKey(currentLoc)) {
-                for (TransportationDto transport : graph.get(currentLoc)) {
+            if (graph.containsKey(currentLocation)) {
+                for (TransportationDto transport : graph.get(currentLocation)) {
 
                     if (isVisitedInPath(currentPath, transport.destination())) {
                         continue;
@@ -65,9 +65,9 @@ class DefaultRouteFinder implements RouteFinder {
                 .anyMatch(t -> t.transportationType() == TransportationType.FLIGHT);
     }
 
-    private boolean isVisitedInPath(List<TransportationDto> path, LocationDto targetLoc) {
+    private boolean isVisitedInPath(List<TransportationDto> path, LocationDto targetLocation) {
         return path.stream()
-                .anyMatch(t -> t.destination().equals(targetLoc));
+                .anyMatch(t -> t.destination().equals(targetLocation));
     }
 
     private Map<LocationDto, List<TransportationDto>> buildGraph(RouteFindContext context) {
