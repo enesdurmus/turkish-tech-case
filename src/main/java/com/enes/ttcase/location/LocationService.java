@@ -11,22 +11,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class LocationService {
 
-    private final LocationRepository locationRepository;
-    private final LocationMapper locationMapper;
+    private final LocationRepository repository;
+    private final LocationMapper mapper;
 
-    LocationService(LocationRepository locationRepository,
-                    LocationMapper locationMapper) {
-        this.locationRepository = locationRepository;
-        this.locationMapper = locationMapper;
+    LocationService(LocationRepository repository,
+                    LocationMapper mapper) {
+        this.repository = repository;
+        this.mapper = mapper;
     }
 
     public Page<LocationDto> getAllRoutes(Pageable pageable) {
-        return locationRepository.findAll(pageable)
-                .map(locationMapper::toDto);
+        return repository.findAll(pageable)
+                .map(mapper::toDto);
     }
 
     public LocationDto findById(Long id) {
-        return locationMapper.toDto(locationRepository.findById(id).orElse(null));
+        return mapper.toDto(repository.findById(id).orElse(null));
     }
 
     public LocationDto createLocation(LocationSaveRequest request) {
@@ -35,24 +35,29 @@ public class LocationService {
         location.setCity(request.city());
         location.setCountry(request.country());
         location.setLocationCode(request.locationCode());
-        return locationMapper.toDto(locationRepository.save(location));
+        return mapper.toDto(repository.save(location));
     }
 
     @Transactional
     public @Nullable LocationDto updateLocation(long id, @Valid LocationSaveRequest request) {
-        Location location = locationRepository.findById(id).orElseThrow(EntityNotFoundException::new);
+        Location location = repository.findById(id).orElseThrow(EntityNotFoundException::new);
         location.setName(request.name());
         location.setCity(request.city());
         location.setCountry(request.country());
         location.setLocationCode(request.locationCode());
-        return locationMapper.toDto(locationRepository.save(location));
+        return mapper.toDto(repository.save(location));
     }
 
     public void deleteLocation(long id) {
-        locationRepository.deleteById(id);
+        repository.deleteById(id);
     }
 
     public Location getReference(long id) {
-        return locationRepository.getReferenceById(id);
+        return repository.getReferenceById(id);
     }
+
+    public LocationDto findByLocationCode(String locationCode) {
+        return mapper.toDto(repository.findByLocationCode(locationCode));
+    }
+
 }

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class TransportationService {
 
@@ -54,6 +56,20 @@ public class TransportationService {
 
     public void deleteTransportation(long id) {
         repository.deleteById(id);
+    }
+
+    public List<TransportationDto> findAllBetweenCities(String originCity, String destinationCity) {
+        return repository.findAllBetweenCities(originCity, destinationCity)
+                .stream()
+                .map(mapper::toDto)
+                .toList();
+    }
+
+    public List<TransportationDto> findAllByCity(String city) {
+        return repository.findAllByCity(city)
+                .stream()
+                .map(mapper::toDto)
+                .toList();
     }
 
 }

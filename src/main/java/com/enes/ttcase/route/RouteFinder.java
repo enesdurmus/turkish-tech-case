@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface RouteFinder {
 
-    List<Route> findRoute(FindRouteRequest request);
+    List<Route> findRoutes(RouteFindContext request);
 }

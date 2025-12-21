@@ -1,0 +1,86 @@
+package com.enes.ttcase.route;
+
+import com.enes.ttcase.location.LocationDto;
+import com.enes.ttcase.transportation.TransportationDto;
+import com.enes.ttcase.transportation.TransportationType;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Component
+class DefaultRouteFinder implements RouteFinder {
+
+    private static final int MAX_STEPS = 3;
+
+    @Override
+    public List<Route> findRoutes(RouteFindContext context) {
+        List<Route> validRoutes = new ArrayList<>();
+
+        Map<LocationDto, List<TransportationDto>> graph = buildGraph(context);
+        Deque<SearchState> stack = new ArrayDeque<>();
+
+        stack.push(new SearchState(context.origin(), new ArrayList<>()));
+
+        while (!stack.isEmpty()) {
+            SearchState currentState = stack.pop();
+            LocationDto currentLoc = currentState.location;
+            List<TransportationDto> currentPath = currentState.pathSoFar;
+
+            if (currentLoc.equals(context.destination())) {
+                if (containsFlight(currentPath)) {
+                    validRoutes.add(new Route(currentPath));
+                }
+                continue;
+            }
+
+            if (currentPath.size() >= MAX_STEPS) {
+                continue;
+            }
+
+            if (graph.containsKey(currentLoc)) {
+                for (TransportationDto transport : graph.get(currentLoc)) {
+
+                    if (isVisitedInPath(currentPath, transport.destination())) {
+                        continue;
+                    }
+
+                    List<TransportationDto> newPath = new ArrayList<>(currentPath);
+                    newPath.add(transport);
+
+                    stack.push(new SearchState(transport.destination(), newPath));
+                }
+            }
+        }
+
+        return validRoutes;
+    }
+
+    private boolean containsFlight(List<TransportationDto> path) {
+        return path.stream().anyMatch(t -> t.transportationType() == TransportationType.FLIGHT);
+    }
+
+    private boolean isVisitedInPath(List<TransportationDto> path, LocationDto targetLoc) {
+        return path.stream().anyMatch(t -> t.destination().equals(targetLoc));
+    }
+
+    private Map<LocationDto, List<TransportationDto>> buildGraph(RouteFindContext context) {
+        return context.transportations()
+                .stream()
+                .collect(Collectors.groupingBy(TransportationDto::origin));
+    }
+
+    private static class SearchState {
+        LocationDto location;
+        List<TransportationDto> pathSoFar;
+
+        public SearchState(LocationDto location, List<TransportationDto> pathSoFar) {
+            this.location = location;
+            this.pathSoFar = pathSoFar;
+        }
+    }
+}

@@ -5,6 +5,6 @@ import com.enes.ttcase.transportation.TransportationDto;
 import java.util.List;
 
 public record Route(
-        List<TransportationDto> route
+        List<TransportationDto> steps
 ) {
 }
