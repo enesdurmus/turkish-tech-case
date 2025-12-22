@@ -12,6 +12,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 @Service
@@ -32,13 +34,22 @@ public class RouteService {
         this.executor = executor;
     }
 
-    public List<Route> searchRoutes(SearchRouteRequest request) {
+    public List<Route> searchRoutes(SearchRouteRequest request) throws ExecutionException, InterruptedException {
         if (request.originLocationCode().equals(request.destinationLocationCode())) {
             throw new IllegalArgumentException("Origin code and Destination code are the same");
         }
 
-        LocationDto origin = locationService.findByLocationCode(request.originLocationCode());
-        LocationDto destination = locationService.findByLocationCode(request.destinationLocationCode());
+        CompletableFuture<LocationDto> originFuture = CompletableFuture.supplyAsync(
+                () -> locationService.findByLocationCode(request.originLocationCode()),
+                executor);
+        CompletableFuture<LocationDto> destinationFuture = CompletableFuture.supplyAsync(
+                () -> locationService.findByLocationCode(request.destinationLocationCode()),
+                executor);
+
+        CompletableFuture.allOf(originFuture, destinationFuture).join();
+        LocationDto origin = originFuture.get();
+        LocationDto destination = destinationFuture.get();
+
         Set<TransportationDto> transportations = fetchTransportations(origin.city(), destination.city(), request.date());
 
         RouteFindContext context = new RouteFindContext(

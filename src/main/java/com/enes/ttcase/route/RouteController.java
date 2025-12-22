@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping(value = "api/v1/routes")
@@ -19,7 +20,7 @@ class RouteController {
     }
 
     @GetMapping("/search")
-    public List<Route> searchRoutes(@Valid @RequestBody SearchRouteRequest request) {
+    public List<Route> searchRoutes(@Valid @RequestBody SearchRouteRequest request) throws ExecutionException, InterruptedException {
         return routeService.searchRoutes(request);
     }
 
