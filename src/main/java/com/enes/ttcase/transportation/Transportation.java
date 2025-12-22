@@ -1,7 +1,9 @@
 package com.enes.ttcase.transportation;
 
 import com.enes.ttcase.location.Location;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -16,11 +18,10 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 
+import java.time.DayOfWeek;
 import java.time.Instant;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -47,9 +48,14 @@ public class Transportation {
     @Column(name = "transportation_type")
     private TransportationType transportationType;
 
-    @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "operating_days", columnDefinition = "integer[]")
-    private List<Integer> operatingDays;
+    @ElementCollection(targetClass = DayOfWeek.class)
+    @CollectionTable(
+            name = "transportation_operating_day",
+            joinColumns = @JoinColumn(name = "transportation_id")
+    )
+    @Enumerated(EnumType.ORDINAL)
+    @Column(name = "operating_day")
+    private Set<DayOfWeek> operatingDays;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

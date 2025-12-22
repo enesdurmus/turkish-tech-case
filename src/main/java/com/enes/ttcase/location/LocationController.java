@@ -51,4 +51,10 @@ class LocationController {
         locationService.deleteLocation(id);
     }
 
+    @GetMapping("/codes")
+    public Page<String> getAllLocationCodes(Pageable pageable) {
+        return locationService.getAllRoutes(pageable)
+                .map(LocationDto::locationCode);
+    }
+
 }

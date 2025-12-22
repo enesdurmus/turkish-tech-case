@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.util.List;
 
 @Service
@@ -37,8 +38,8 @@ public class TransportationService {
 
     public TransportationDto createTransportation(TransportationSaveRequest request) {
         Transportation transportation = new Transportation();
-        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originLocationCode()));
-        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationLocationCode()));
+        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originCode()));
+        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationCode()));
         transportation.setOperatingDays(request.operatingDays());
         transportation.setTransportationType(request.transportationType());
         return mapper.toDto(repository.save(transportation));
@@ -47,8 +48,8 @@ public class TransportationService {
     @Transactional
     public @Nullable TransportationDto updateTransportation(long id, @Valid TransportationSaveRequest request) {
         Transportation transportation = repository.findById(id).orElseThrow(EntityNotFoundException::new);
-        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originLocationCode()));
-        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationLocationCode()));
+        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originCode()));
+        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationCode()));
         transportation.setOperatingDays(request.operatingDays());
         transportation.setTransportationType(request.transportationType());
         return mapper.toDto(repository.save(transportation));
@@ -58,15 +59,15 @@ public class TransportationService {
         repository.deleteById(id);
     }
 
-    public List<TransportationDto> findAllBetweenCities(String originCity, String destinationCity) {
-        return repository.findAllBetweenCities(originCity, destinationCity)
+    public List<TransportationDto> findAllBetweenCities(String originCity, String destinationCity, DayOfWeek operatingDay) {
+        return repository.findAllBetweenCitiesAndOperatingDay(originCity, destinationCity, operatingDay)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
     }
 
-    public List<TransportationDto> findAllByCity(String city) {
-        return repository.findAllByCity(city)
+    public List<TransportationDto> findAllByCityAndOperatingDay(String city, DayOfWeek operatingDay) {
+        return repository.findAllByCityAndOperatingDay(city, operatingDay)
                 .stream()
                 .map(mapper::toDto)
                 .toList();
