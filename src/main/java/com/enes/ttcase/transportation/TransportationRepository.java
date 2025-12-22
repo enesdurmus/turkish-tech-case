@@ -12,21 +12,15 @@ interface TransportationRepository extends JpaRepository<Transportation, Long> {
     @Query("""
             SELECT DISTINCT t
             FROM Transportation t
-            JOIN t.operatingDays d
-            WHERE d = :operatingDay
-            AND (t.origin.city = :city
-            OR t.destination.city = :city)
+            JOIN FETCH t.origin o
+            JOIN FETCH t.destination d
+            JOIN FETCH t.operatingDays od
+            WHERE od = :operatingDay
+            AND (
+                o.city IN (:cities)
+                OR d.city IN (:cities)
+            )
             """)
-    List<Transportation> findAllByCityAndOperatingDay(@Param("city") String city, @Param("operatingDay") DayOfWeek operatingDay);
-
-    @Query("""
-            SELECT t
-            FROM Transportation t
-            JOIN t.operatingDays d
-            WHERE d = :operatingDay
-            AND (t.origin.city = :originCity
-            OR t.destination.city = :destinationCity)
-            """)
-    List<Transportation> findAllBetweenCitiesAndOperatingDay(@Param("originCity") String originCity, @Param("destinationCity") String destinationCity, @Param("operatingDay") DayOfWeek operatingDay);
+    List<Transportation> findAllByCitiesAndOperatingDay(@Param("cities") List<String> cities, @Param("operatingDay") DayOfWeek operatingDay);
 
 }

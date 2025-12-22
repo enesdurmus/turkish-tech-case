@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TransportationService {
@@ -59,18 +61,11 @@ public class TransportationService {
         repository.deleteById(id);
     }
 
-    public List<TransportationDto> findAllBetweenCities(String originCity, String destinationCity, DayOfWeek operatingDay) {
-        return repository.findAllBetweenCitiesAndOperatingDay(originCity, destinationCity, operatingDay)
+    public Set<TransportationDto> findAllByCitiesAndOperatingDay(List<String> cities, DayOfWeek operatingDay) {
+        return repository.findAllByCitiesAndOperatingDay(cities, operatingDay)
                 .stream()
                 .map(mapper::toDto)
-                .toList();
-    }
-
-    public List<TransportationDto> findAllByCityAndOperatingDay(String city, DayOfWeek operatingDay) {
-        return repository.findAllByCityAndOperatingDay(city, operatingDay)
-                .stream()
-                .map(mapper::toDto)
-                .toList();
+                .collect(Collectors.toSet());
     }
 
 }

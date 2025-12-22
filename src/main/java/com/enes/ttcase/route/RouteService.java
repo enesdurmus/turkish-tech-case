@@ -4,14 +4,15 @@ import com.enes.ttcase.location.LocationDto;
 import com.enes.ttcase.location.LocationService;
 import com.enes.ttcase.transportation.TransportationDto;
 import com.enes.ttcase.transportation.TransportationService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 
 @Service
 public class RouteService {
@@ -19,13 +20,16 @@ public class RouteService {
     private final TransportationService transportationService;
     private final LocationService locationService;
     private final RouteFinder routeFinder;
+    private final ExecutorService executor;
 
     public RouteService(TransportationService transportationService,
                         LocationService locationService,
-                        RouteFinder routeFinder) {
+                        RouteFinder routeFinder,
+                        @Qualifier("transportationExecutorService") ExecutorService executor) {
         this.transportationService = transportationService;
         this.locationService = locationService;
         this.routeFinder = routeFinder;
+        this.executor = executor;
     }
 
     public List<Route> searchRoutes(SearchRouteRequest request) {
@@ -48,11 +52,6 @@ public class RouteService {
 
     private Set<TransportationDto> fetchTransportations(String originCity, String destinationCity, Instant date) {
         DayOfWeek operatingDay = date.atZone(ZoneId.systemDefault()).getDayOfWeek();
-
-        Set<TransportationDto> transportations = new HashSet<>();
-        transportations.addAll(transportationService.findAllByCityAndOperatingDay(originCity, operatingDay));
-        transportations.addAll(transportationService.findAllByCityAndOperatingDay(destinationCity, operatingDay));
-        transportations.addAll(transportationService.findAllBetweenCities(originCity, destinationCity, operatingDay));
-        return transportations;
+        return transportationService.findAllByCitiesAndOperatingDay(List.of(originCity, destinationCity), operatingDay);
     }
 }

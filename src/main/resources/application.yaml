@@ -7,6 +7,17 @@ spring:
     username: case_user
     password: case_pass
 
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  logging:
+    level:
+      org.hibernate.SQL: DEBUG
+      org.hibernate.orm.jdbc.bind: TRACE
+
   data:
     redis:
       host: localhost
