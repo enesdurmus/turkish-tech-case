@@ -1,149 +1,111 @@
-import { useCallback, useEffect, useState } from "react";
-import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
-import { Typography, TextField } from "@mui/material";
+import {GridColDef} from "@mui/x-data-grid";
+import {TextField, Typography} from "@mui/material";
 import CrudGrid from "../../components/CrudGrid";
-import {
-  Location,
-  getLocations,
-  addLocation,
-  updateLocation,
-  deleteLocation,
-} from "./locationService";
+import {Location, LocationFormData} from "../../types/location";
+import {locationService} from "../../services/locationService";
+import {useCrudOperations} from "../../hooks/useCrudOperations";
 
 export default function LocationPage() {
-  const [data, setData] = useState<Location[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [rowCount, setRowCount] = useState(0);
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 5,
-  });
+    const {
+        data,
+        loading,
+        rowCount,
+        paginationModel,
+        setPaginationModel,
+        handleCreate,
+        handleUpdate,
+        handleDelete,
+    } = useCrudOperations<Location, LocationFormData>(locationService);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getLocations({
-        page: paginationModel.page,
-        size: paginationModel.pageSize,
-      });
-      setData(response.content);
-      setRowCount(response.totalElements);
-    } catch (error) {
-      // console.error("Failed to fetch locations:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [paginationModel]);
+    const columns: GridColDef[] = [
+        {field: "name", headerName: "Name", width: 150},
+        {field: "country", headerName: "Country", width: 120},
+        {field: "city", headerName: "City", width: 120},
+        {field: "locationCode", headerName: "Code", width: 100},
+        {
+            field: "createdAt",
+            headerName: "Created At",
+            width: 180,
+            type: 'dateTime',
+            valueGetter: (value) => value && new Date(value),
+        },
+        {
+            field: "updatedAt",
+            headerName: "Updated At",
+            width: 180,
+            type: 'dateTime',
+            valueGetter: (value) => value && new Date(value),
+        },
+    ];
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const locationFormFields = (formData: LocationFormData, onChange: (data: LocationFormData) => void) => (
+        <>
+            <TextField
+                autoFocus
+                margin="dense"
+                label="Name"
+                fullWidth
+                value={formData.name}
+                onChange={(e) => onChange({...formData, name: e.target.value})}
+            />
+            <TextField
+                margin="dense"
+                label="Country"
+                fullWidth
+                value={formData.country}
+                onChange={(e) => onChange({...formData, country: e.target.value})}
+            />
+            <TextField
+                margin="dense"
+                label="City"
+                fullWidth
+                value={formData.city}
+                onChange={(e) => onChange({...formData, city: e.target.value})}
+            />
+            <TextField
+                margin="dense"
+                label="Location Code"
+                fullWidth
+                value={formData.locationCode}
+                onChange={(e) => onChange({...formData, locationCode: e.target.value})}
+            />
+        </>
+    );
 
-  const columns: GridColDef[] = [
-    { field: "name", headerName: "Name", width: 150, editable: true },
-    { field: "country", headerName: "Country", width: 120, editable: true },
-    { field: "city", headerName: "City", width: 120, editable: true },
-    { field: "locationCode", headerName: "Code", width: 100, editable: true },
-    { field: "createdAt", headerName: "Created At", width: 180, type: 'dateTime', valueGetter: (value) => value && new Date(value), editable: false },
-    { field: "updatedAt", headerName: "Updated At", width: 180, type: 'dateTime', valueGetter: (value) => value && new Date(value), editable: false },
-  ];
+    const getNewFormData = (): LocationFormData => ({
+        name: '',
+        country: '',
+        city: '',
+        locationCode: '',
+    });
 
-  const handleAdd = async (newItem: Omit<Location, "id" | "createdAt" | "updatedAt">) => {
-    try {
-      await addLocation(newItem);
-      fetchData();
-    } catch (error) {
-      // console.error("Failed to add location:", error);
-    }
-  };
+    const toFormData = (location: Location): LocationFormData => ({
+        name: location.name,
+        country: location.country,
+        city: location.city,
+        locationCode: location.locationCode,
+    });
 
-  const handleUpdate = async (updatedItem: Location) => {
-    try {
-      await updateLocation(updatedItem);
-      fetchData();
-    } catch (error) {
-      // console.error("Failed to update location:", error);
-    }
-  };
-
-  const handleDelete = async (id: string | number) => {
-    try {
-      await deleteLocation(String(id));
-      fetchData();
-    } catch (error) {
-      // console.error("Failed to delete location:", error);
-    }
-  };
-  
-  const locationFormFields = (location: Location) => (
-    <>
-      <TextField
-        autoFocus
-        margin="dense"
-        label="Name"
-        name="name"
-        type="text"
-        fullWidth
-        defaultValue={location.name || ''}
-        onChange={(e) => (location.name = e.target.value)}
-      />
-      <TextField
-        margin="dense"
-        label="Country"
-        name="country"
-        type="text"
-        fullWidth
-        defaultValue={location.country || ''}
-        onChange={(e) => (location.country = e.target.value)}
-      />
-      <TextField
-        margin="dense"
-        label="City"
-        name="city"
-        type="text"
-        fullWidth
-        defaultValue={location.city || ''}
-        onChange={(e) => (location.city = e.target.value)}
-      />
-      <TextField
-        margin="dense"
-        label="Location Code"
-        name="locationCode"
-        type="text"
-        fullWidth
-        defaultValue={location.locationCode || ''}
-        onChange={(e) => (location.locationCode = e.target.value)}
-      />
-    </>
-  );
-
-  return (
-    <>
-      <Typography variant="h4" gutterBottom>
-        Locations
-      </Typography>
-      <CrudGrid<Location>
-        data={data}
-        columns={columns}
-        rowCount={rowCount}
-        loading={loading}
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        onAdd={handleAdd}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-        formFields={locationFormFields}
-        getNewItem={() => ({ 
-          id: '', 
-          name: '', 
-          country: '', 
-          city: '', 
-          locationCode: '',
-          createdAt: '',
-          updatedAt: '',
-        })}
-        entityName="Location"
-      />
-    </>
-  );
+    return (
+        <>
+            <Typography variant="h4" gutterBottom>
+                Locations
+            </Typography>
+            <CrudGrid<Location, LocationFormData>
+                data={data}
+                columns={columns}
+                rowCount={rowCount}
+                loading={loading}
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                onAdd={handleCreate}
+                onUpdate={(id, formData) => handleUpdate(String(id), formData)}
+                onDelete={(id) => handleDelete(String(id))}
+                formFields={locationFormFields}
+                getNewFormData={getNewFormData}
+                toFormData={toFormData}
+                entityName="Location"
+            />
+        </>
+    );
 }

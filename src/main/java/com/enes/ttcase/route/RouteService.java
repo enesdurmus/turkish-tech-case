@@ -35,15 +35,15 @@ public class RouteService {
     }
 
     public List<Route> searchRoutes(SearchRouteRequest request) throws ExecutionException, InterruptedException {
-        if (request.originLocationCode().equals(request.destinationLocationCode())) {
+        if (request.originCode().equals(request.destinationCode())) {
             throw new IllegalArgumentException("Origin code and Destination code are the same");
         }
 
         CompletableFuture<LocationDto> originFuture = CompletableFuture.supplyAsync(
-                () -> locationService.findByLocationCode(request.originLocationCode()),
+                () -> locationService.findByLocationCode(request.originCode()),
                 executor);
         CompletableFuture<LocationDto> destinationFuture = CompletableFuture.supplyAsync(
-                () -> locationService.findByLocationCode(request.destinationLocationCode()),
+                () -> locationService.findByLocationCode(request.destinationCode()),
                 executor);
 
         CompletableFuture.allOf(originFuture, destinationFuture).join();

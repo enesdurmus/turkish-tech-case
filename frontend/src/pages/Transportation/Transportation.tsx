@@ -1,210 +1,295 @@
-import { useCallback, useEffect, useState } from "react";
-import { GridColDef, GridPaginationModel } from "@mui/x-data-grid";
-import { Typography, TextField, MenuItem, Select, InputLabel, FormControl, Checkbox, FormControlLabel, FormGroup, Box } from "@mui/material";
-import CrudGrid from "../../components/CrudGrid";
+import {GridColDef} from "@mui/x-data-grid";
 import {
-  Transportation,
-  getTransportations,
-  addTransportation,
-  updateTransportation,
-  deleteTransportation,
-  TransportationType,
-  TransportationPayload,
-} from "./transportationService";
-import { Location } from "../Location/locationService";
+    Autocomplete,
+    Box,
+    Checkbox,
+    CircularProgress,
+    FormControl,
+    FormControlLabel,
+    FormGroup,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField,
+    Typography
+} from "@mui/material";
+import CrudGrid from "../../components/CrudGrid";
+import {Transportation, TransportationFormData, TransportationType} from "../../types/transportation";
+import {transportationService} from "../../services/transportationService";
+import {locationService} from "../../services/locationService";
+import {useCrudOperations} from "../../hooks/useCrudOperations";
+import {DAYS_OF_WEEK, DAYS_OF_WEEK_SHORT} from "../../constants";
+import {useCallback, useEffect, useRef, useState} from "react";
 
 export default function TransportationPage() {
-  const [data, setData] = useState<Transportation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [rowCount, setRowCount] = useState(0);
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 5,
-  });
+    const {
+        data,
+        loading,
+        rowCount,
+        paginationModel,
+        setPaginationModel,
+        handleCreate,
+        handleUpdate,
+        handleDelete,
+    } = useCrudOperations<Transportation, TransportationFormData>(transportationService);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    try {
-      const response = await getTransportations({
-        page: paginationModel.page,
-        size: paginationModel.pageSize,
-      });
-      setData(response.content);
-      setRowCount(response.totalElements);
-    } catch (error) {
-      // console.error("Failed to fetch transportations:", error); // Removed
-    } finally {
-      setLoading(false);
-    }
-  }, [paginationModel]);
+    const [originCodes, setOriginCodes] = useState<string[]>([]);
+    const [destinationCodes, setDestinationCodes] = useState<string[]>([]);
+    const [originLoading, setOriginLoading] = useState(false);
+    const [destinationLoading, setDestinationLoading] = useState(false);
+    const [originPage, setOriginPage] = useState(0);
+    const [destinationPage, setDestinationPage] = useState(0);
+    const [originHasMore, setOriginHasMore] = useState(true);
+    const [destinationHasMore, setDestinationHasMore] = useState(true);
+    const originListboxRef = useRef<HTMLUListElement>(null);
+    const destinationListboxRef = useRef<HTMLUListElement>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    const loadOriginCodes = useCallback(async (page: number) => {
+        if (originLoading || !originHasMore) return;
 
-  const columns: GridColDef[] = [
-    { 
-        field: "origin", 
-        headerName: "Origin", 
-        width: 150, 
-        valueGetter: (value, row) => row.origin?.name || '',
-    },
-    { 
-        field: "destination", 
-        headerName: "Destination", 
-        width: 150, 
-        valueGetter: (value, row) => row.destination?.name || '',
-    },
-    { 
-        field: "transportationType", 
-        headerName: "Type", 
-        width: 130,
-        valueFormatter: (value) => (value as string)?.replace('_', ' ') || '',
-    },
-    { 
-        field: "operatingDays", 
-        headerName: "Operating Days", 
-        width: 200, 
-        valueFormatter: (value) => (value as number[])?.map(dayNum => {
-            const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-            return days[dayNum];
-        }).join(', ') || '',
-    },
-    { field: "createdAt", headerName: "Created At", width: 180, type: 'dateTime', valueGetter: (value) => value && new Date(value), editable: false },
-    { field: "updatedAt", headerName: "Updated At", width: 180, type: 'dateTime', valueGetter: (value) => value && new Date(value), editable: false },
-  ];
+        setOriginLoading(true);
+        try {
+            const response = await locationService.getAllCodes({page, size: 20});
+            setOriginCodes(prev => page === 0 ? response.content : [...prev, ...response.content]);
+            setOriginHasMore(!response.last);
+        } catch (error) {
+            console.error("Failed to load origin codes:", error);
+        } finally {
+            setOriginLoading(false);
+        }
+    }, [originLoading, originHasMore]);
 
-  const handleAdd = async (item: any) => {
-    try {
-      const payload: TransportationPayload = {
-        originCode: item.origin.locationCode,
-        destinationCode: item.destination.locationCode,
-        transportationType: item.transportationType,
-        operatingDays: item.operatingDays,
-      };
-      await addTransportation(payload);
-      fetchData();
-    } catch (error) {
-      // console.error("Failed to add route:", error); // Removed
-    }
-  };
+    const loadDestinationCodes = useCallback(async (page: number) => {
+        if (destinationLoading || !destinationHasMore) return;
 
-  const handleUpdate = async (item: any) => {
-    try {
-        const payload: TransportationPayload = {
-            originCode: item.origin.locationCode,
-            destinationCode: item.destination.locationCode,
-            transportationType: item.transportationType,
-            operatingDays: item.operatingDays,
-        };
-      await updateTransportation(item.id, payload);
-      fetchData();
-    } catch (error) {
-      // console.error("Failed to update route:", error); // Removed
-    }
-  };
+        setDestinationLoading(true);
+        try {
+            const response = await locationService.getAllCodes({page, size: 20});
+            setDestinationCodes(prev => page === 0 ? response.content : [...prev, ...response.content]);
+            setDestinationHasMore(!response.last);
+        } catch (error) {
+            console.error("Failed to load destination codes:", error);
+        } finally {
+            setDestinationLoading(false);
+        }
+    }, [destinationLoading, destinationHasMore]);
 
-  const handleDelete = async (id: number) => {
-    try {
-      await deleteTransportation(id);
-      fetchData();
-    } catch (error) {
-      // console.error("Failed to delete route:", error); // Removed
-    }
-  };
+    useEffect(() => {
+        loadOriginCodes(0);
+        loadDestinationCodes(0);
+    }, []);
 
-  const transportationFormFields = (trans: any) => {
-    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-    const handleOperatingDaysChange = (dayIndex: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
-      if (event.target.checked) {
-        trans.operatingDays = [...(trans.operatingDays || []), dayIndex].sort((a, b) => a - b);
-      } else {
-        trans.operatingDays = (trans.operatingDays || []).filter((day) => day !== dayIndex);
-      }
-    };
+    const handleOriginScroll = useCallback((event: React.SyntheticEvent) => {
+        const listboxNode = event.currentTarget as HTMLUListElement;
+        if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 50) {
+            if (originHasMore && !originLoading) {
+                const nextPage = originPage + 1;
+                setOriginPage(nextPage);
+                loadOriginCodes(nextPage);
+            }
+        }
+    }, [originHasMore, originLoading, originPage, loadOriginCodes]);
+
+    const handleDestinationScroll = useCallback((event: React.SyntheticEvent) => {
+        const listboxNode = event.currentTarget as HTMLUListElement;
+        if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 50) {
+            if (destinationHasMore && !destinationLoading) {
+                const nextPage = destinationPage + 1;
+                setDestinationPage(nextPage);
+                loadDestinationCodes(nextPage);
+            }
+        }
+    }, [destinationHasMore, destinationLoading, destinationPage, loadDestinationCodes]);
+
+    const columns: GridColDef[] = [
+        {
+            field: "origin",
+            headerName: "Origin",
+            width: 150,
+            valueGetter: (value, row) => row.origin?.name || '',
+        },
+        {
+            field: "destination",
+            headerName: "Destination",
+            width: 150,
+            valueGetter: (value, row) => row.destination?.name || '',
+        },
+        {
+            field: "transportationType",
+            headerName: "Type",
+            width: 130,
+            valueFormatter: (value) => (value as string)?.replace('_', ' ') || '',
+        },
+        {
+            field: "operatingDays",
+            headerName: "Operating Days",
+            width: 200,
+            valueGetter: (value, row) => {
+                const days = row.operatingDays;
+                if (!days || !Array.isArray(days) || days.length === 0) {
+                    return '';
+                }
+                return days
+                    .sort((a, b) => a - b)
+                    .map(dayNum => DAYS_OF_WEEK_SHORT[dayNum] || '')
+                    .filter(day => day !== '')
+                    .join(', ');
+            },
+        },
+        {
+            field: "createdAt",
+            headerName: "Created At",
+            width: 180,
+            type: 'dateTime',
+            valueGetter: (value) => value && new Date(value),
+        },
+        {
+            field: "updatedAt",
+            headerName: "Updated At",
+            width: 180,
+            type: 'dateTime',
+            valueGetter: (value) => value && new Date(value),
+        },
+    ];
+
+    const transportationFormFields = (
+        formData: TransportationFormData,
+        onChange: (data: TransportationFormData) => void
+    ) => (
+        <Box sx={{minWidth: 300}}>
+            <Autocomplete
+                options={originCodes}
+                value={formData.originCode || null}
+                onChange={(_, newValue) => onChange({...formData, originCode: newValue || ''})}
+                loading={originLoading}
+                ListboxProps={{
+                    onScroll: handleOriginScroll,
+                    ref: originListboxRef,
+                }}
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        autoFocus
+                        margin="dense"
+                        label="Origin Code"
+                        InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                                <>
+                                    {originLoading ? <CircularProgress color="inherit" size={20}/> : null}
+                                    {params.InputProps.endAdornment}
+                                </>
+                            ),
+                        }}
+                    />
+                )}
+            />
+
+            <Autocomplete
+                options={destinationCodes}
+                value={formData.destinationCode || null}
+                onChange={(_, newValue) => onChange({...formData, destinationCode: newValue || ''})}
+                loading={destinationLoading}
+                ListboxProps={{
+                    onScroll: handleDestinationScroll,
+                    ref: destinationListboxRef,
+                }}
+                renderInput={(params) => (
+                    <TextField
+                        {...params}
+                        margin="dense"
+                        label="Destination Code"
+                        InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                                <>
+                                    {destinationLoading ? <CircularProgress color="inherit" size={20}/> : null}
+                                    {params.InputProps.endAdornment}
+                                </>
+                            ),
+                        }}
+                    />
+                )}
+            />
+
+            <FormControl fullWidth margin="dense">
+                <InputLabel>Transportation Type</InputLabel>
+                <Select
+                    value={formData.transportationType}
+                    label="Transportation Type"
+                    onChange={(e) => onChange({...formData, transportationType: e.target.value as TransportationType})}
+                >
+                    {Object.values(TransportationType).map((type) => (
+                        <MenuItem key={type} value={type}>
+                            {type.replace('_', ' ')}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            <FormControl component="fieldset" margin="dense" fullWidth>
+                <Typography variant="subtitle1" sx={{mt: 1}}>Operating Days</Typography>
+                <FormGroup row>
+                    {DAYS_OF_WEEK.map((day, index) => {
+                        const dayValue = index;
+                        return (
+                            <FormControlLabel
+                                key={day}
+                                control={
+                                    <Checkbox
+                                        checked={(formData.operatingDays || []).includes(dayValue)}
+                                        onChange={(e) => {
+                                            const currentDays = formData.operatingDays || [];
+                                            const newOperatingDays = e.target.checked
+                                                ? [...currentDays, dayValue].sort((a, b) => a - b)
+                                                : currentDays.filter((d) => d !== dayValue);
+                                            onChange({...formData, operatingDays: newOperatingDays});
+                                        }}
+                                    />
+                                }
+                                label={day}
+                            />
+                        );
+                    })}
+                </FormGroup>
+            </FormControl>
+        </Box>
+    );
+
+    const getNewFormData = (): TransportationFormData => ({
+        originCode: '',
+        destinationCode: '',
+        transportationType: TransportationType.BUS,
+        operatingDays: [],
+    });
+
+    const toFormData = (transportation: Transportation): TransportationFormData => ({
+        originCode: transportation.origin?.locationCode || '',
+        destinationCode: transportation.destination?.locationCode || '',
+        transportationType: transportation.transportationType,
+        operatingDays: transportation.operatingDays || [],
+    });
 
     return (
-      <Box sx={{ minWidth: 300 }}>
-        <TextField
-            autoFocus
-            margin="dense"
-            label="Origin Code"
-            type="text"
-            fullWidth
-            defaultValue={trans.origin?.locationCode || ''}
-            onChange={(e) => trans.originCode = e.target.value}
-        />
-        <TextField
-            margin="dense"
-            label="Destination Code"
-            type="text"
-            fullWidth
-            defaultValue={trans.destination?.locationCode || ''}
-            onChange={(e) => trans.destinationCode = e.target.value}
-        />
-        <FormControl fullWidth margin="dense">
-          <InputLabel>Transportation Type</InputLabel>
-          <Select
-            value={trans.transportationType || ''}
-            label="Transportation Type"
-            onChange={(e) => (trans.transportationType = e.target.value as TransportationType)}
-          >
-            {Object.values(TransportationType).map((type) => (
-              <MenuItem key={type} value={type}>
-                {type.replace('_', ' ')}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-
-        <FormControl component="fieldset" margin="dense" fullWidth>
-            <Typography variant="subtitle1">Operating Days</Typography>
-            <FormGroup row>
-                {daysOfWeek.map((day, index) => (
-                    <FormControlLabel
-                        key={index}
-                        control={
-                            <Checkbox
-                                defaultChecked={(trans.operatingDays || []).includes(index)}
-                                onChange={handleOperatingDaysChange(index)}
-                            />
-                        }
-                        label={day}
-                    />
-                ))}
-            </FormGroup>
-        </FormControl>
-      </Box>
+        <>
+            <Typography variant="h4" gutterBottom>
+                Transportation
+            </Typography>
+            <CrudGrid<Transportation, TransportationFormData>
+                data={data}
+                columns={columns}
+                rowCount={rowCount}
+                loading={loading}
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                onAdd={handleCreate}
+                onUpdate={(id, formData) => handleUpdate(Number(id), formData)}
+                onDelete={(id) => handleDelete(Number(id))}
+                formFields={transportationFormFields}
+                getNewFormData={getNewFormData}
+                toFormData={toFormData}
+                entityName="Transportation"
+            />
+        </>
     );
-  };
-
-  return (
-    <>
-      <Typography variant="h4" gutterBottom>
-        Routes
-      </Typography>
-      <CrudGrid<Transportation>
-        data={data}
-        columns={columns}
-        rowCount={rowCount}
-        loading={loading}
-        paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
-        onAdd={handleAdd}
-        onUpdate={handleUpdate}
-        onDelete={handleDelete}
-        formFields={transportationFormFields}
-        getNewItem={() => ({ 
-          id: 0, 
-          origin: null, 
-          destination: null, 
-          transportationType: TransportationType.BUS, 
-          operatingDays: [],
-          createdAt: '',
-          updatedAt: '',
-        } as unknown as Transportation)}
-        entityName="Route"
-      />
-    </>
-  );
 }

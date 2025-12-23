@@ -6,8 +6,8 @@ import jakarta.validation.constraints.NotNull;
 import java.time.Instant;
 
 public record SearchRouteRequest(
-        @NotEmpty String originLocationCode,
-        @NotEmpty String destinationLocationCode,
+        @NotEmpty String originCode,
+        @NotEmpty String destinationCode,
         @NotNull Instant date
 ) {
 }
