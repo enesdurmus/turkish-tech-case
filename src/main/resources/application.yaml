@@ -3,7 +3,7 @@ spring:
     name: enes-durmus-case
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/case_db
+    url: jdbc:postgresql://localhost:5433/case_db
     username: case_user
     password: case_pass
 
