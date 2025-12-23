@@ -25,6 +25,11 @@ public class LocationService {
                 .map(mapper::toDto);
     }
 
+    public Page<String> getAllLocationCodes(Pageable pageable) {
+        return repository.findAll(pageable)
+                .map(Location::getLocationCode);
+    }
+
     public LocationDto findById(Long id) {
         return mapper.toDto(repository.findById(id).orElse(null));
     }

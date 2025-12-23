@@ -53,8 +53,7 @@ class LocationController {
 
     @GetMapping("/codes")
     public Page<String> getAllLocationCodes(Pageable pageable) {
-        return locationService.getAllRoutes(pageable)
-                .map(LocationDto::locationCode);
+        return locationService.getAllLocationCodes(pageable);
     }
 
 }

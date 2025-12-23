@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS transportation
     origin_id           BIGINT    NOT NULL,
     destination_id      BIGINT    NOT NULL,
     transportation_type SMALLINT  NOT NULL,
-    operating_days      INTEGER[]          DEFAULT NULL,
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP          DEFAULT NULL,
     CONSTRAINT fk_origin_id FOREIGN KEY (origin_id) REFERENCES location (id),

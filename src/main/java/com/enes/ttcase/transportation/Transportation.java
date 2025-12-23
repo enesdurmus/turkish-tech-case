@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.time.DayOfWeek;
 import java.time.Instant;
 import java.util.Set;
 
@@ -48,14 +47,13 @@ public class Transportation {
     @Column(name = "transportation_type")
     private TransportationType transportationType;
 
-    @ElementCollection(targetClass = DayOfWeek.class)
+    @ElementCollection(targetClass = Integer.class)
     @CollectionTable(
             name = "transportation_operating_day",
             joinColumns = @JoinColumn(name = "transportation_id")
     )
-    @Enumerated(EnumType.ORDINAL)
     @Column(name = "operating_day")
-    private Set<DayOfWeek> operatingDays;
+    private Set<Integer> operatingDays;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private Instant createdAt;

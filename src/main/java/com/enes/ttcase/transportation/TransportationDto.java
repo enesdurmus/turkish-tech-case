@@ -2,7 +2,6 @@ package com.enes.ttcase.transportation;
 
 import com.enes.ttcase.location.LocationDto;
 
-import java.time.DayOfWeek;
 import java.time.Instant;
 import java.util.Set;
 
@@ -11,7 +10,7 @@ public record TransportationDto(
         LocationDto origin,
         LocationDto destination,
         TransportationType transportationType,
-        Set<DayOfWeek> operatingDays,
+        Set<Integer> operatingDays,
         Instant createdAt,
         Instant updatedAt
 ) {

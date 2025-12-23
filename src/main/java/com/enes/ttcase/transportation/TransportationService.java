@@ -62,7 +62,8 @@ public class TransportationService {
     }
 
     public Set<TransportationDto> findAllByCitiesAndOperatingDay(List<String> cities, DayOfWeek operatingDay) {
-        return repository.findAllByCitiesAndOperatingDay(cities, operatingDay)
+        int dayValue = operatingDay.getValue() % 7;
+        return repository.findAllByCitiesAndOperatingDay(cities, dayValue)
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toSet());

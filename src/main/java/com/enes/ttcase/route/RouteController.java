@@ -1,7 +1,7 @@
 package com.enes.ttcase.route;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @RestController
-@RequestMapping(value = "api/v1/routes")
+@RequestMapping(value = "/api/v1/routes")
 class RouteController {
 
     private final RouteService routeService;
@@ -19,7 +19,7 @@ class RouteController {
         this.routeService = routeService;
     }
 
-    @GetMapping("/search")
+    @PostMapping("/search")
     public List<Route> searchRoutes(@Valid @RequestBody SearchRouteRequest request) throws ExecutionException, InterruptedException {
         return routeService.searchRoutes(request);
     }
