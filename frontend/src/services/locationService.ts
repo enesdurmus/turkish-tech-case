@@ -1,32 +1,30 @@
-import apiService from "../api/apiService";
+import api from "../api/apiService";
 import {PaginatedRequest, PaginatedResponse} from "../types/api";
 import {Location, LocationFormData} from "../types/location";
 
-const API_ENDPOINT = "/v1/locations";
-
 export const locationService = {
     getAll: async (params: PaginatedRequest): Promise<PaginatedResponse<Location>> => {
-        const response = await apiService.get<PaginatedResponse<Location>>(API_ENDPOINT, {params});
+        const response = await api.get("/v1/locations", {params});
         return response.data;
     },
 
     getAllCodes: async (params: PaginatedRequest): Promise<PaginatedResponse<string>> => {
-        const response = await apiService.get<PaginatedResponse<string>>(`${API_ENDPOINT}/codes`, {params});
+        const response = await api.get("/v1/locations/codes", {params});
         return response.data;
     },
 
-    create: async (location: LocationFormData): Promise<Location> => {
-        const response = await apiService.post<Location>(API_ENDPOINT, location);
+    create: async (data: LocationFormData): Promise<Location> => {
+        const response = await api.post("/v1/locations", data);
         return response.data;
     },
 
-    update: async (id: string, location: LocationFormData): Promise<Location> => {
-        const response = await apiService.put<Location>(`${API_ENDPOINT}/${id}`, location);
+    update: async (id: string, data: LocationFormData): Promise<Location> => {
+        const response = await api.put(`/v1/locations/${id}`, data);
         return response.data;
     },
 
     delete: async (id: string): Promise<void> => {
-        await apiService.delete(`${API_ENDPOINT}/${id}`);
+        await api.delete(`/v1/locations/${id}`);
     },
 };
 

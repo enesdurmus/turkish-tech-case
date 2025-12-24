@@ -30,6 +30,7 @@ public class LocationService {
                 .map(Location::getLocationCode);
     }
 
+    @Nullable
     public LocationDto findById(Long id) {
         return mapper.toDto(repository.findById(id).orElse(null));
     }
@@ -57,14 +58,12 @@ public class LocationService {
         repository.deleteById(id);
     }
 
-    public Location getReference(long id) {
-        return repository.getReferenceById(id);
-    }
-
+    @Nullable
     public LocationDto findByLocationCode(String locationCode) {
         return mapper.toDto(getReferenceByLocationCode(locationCode));
     }
 
+    @Nullable
     public Location getReferenceByLocationCode(String locationCode) {
         return repository.findByLocationCode(locationCode);
     }

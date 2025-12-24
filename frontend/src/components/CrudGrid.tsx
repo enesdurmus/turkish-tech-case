@@ -1,6 +1,6 @@
 import {Add, Delete, Edit} from "@mui/icons-material";
-import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,} from "@mui/material";
-import {DataGrid, GridActionsCellItem, GridColDef, GridPaginationModel, GridRowId,} from "@mui/x-data-grid";
+import {Box, Button, Dialog, DialogActions, DialogContent, DialogTitle} from "@mui/material";
+import {DataGrid, GridActionsCellItem, GridColDef, GridPaginationModel, GridRowId} from "@mui/x-data-grid";
 import {ReactElement, useState} from "react";
 import {PAGE_SIZE_OPTIONS} from "../constants";
 
@@ -20,87 +20,50 @@ interface CrudGridProps<T extends { id: GridRowId }, TFormData> {
     entityName: string;
 }
 
-export default function CrudGrid<T extends { id: GridRowId }, TFormData>(
-    props: Readonly<CrudGridProps<T, TFormData>>
-) {
-    const {
-        data,
-        columns,
-        rowCount,
-        loading,
-        paginationModel,
-        onPaginationModelChange,
-        onAdd,
-        onUpdate,
-        onDelete,
-        formFields,
-        getNewFormData,
-        toFormData,
-        entityName,
-    } = props;
+export default function CrudGrid<T extends { id: GridRowId }, TFormData>(props: CrudGridProps<T, TFormData>) {
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-    const [editingItemId, setEditingItemId] = useState<GridRowId | null>(null);
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [editingId, setEditingId] = useState<GridRowId | null>(null);
     const [formData, setFormData] = useState<TFormData | null>(null);
 
-    const handleAddClick = () => {
-        setEditingItemId(null);
-        setFormData(getNewFormData());
+    const handleAdd = () => {
+        setEditingId(null);
+        setFormData(props.getNewFormData());
         setIsFormOpen(true);
     };
 
-    const handleEditClick = (id: GridRowId) => {
-        const itemToEdit = data.find((row) => row.id === id);
-        if (itemToEdit) {
-            setEditingItemId(id);
-            setFormData(toFormData(itemToEdit));
+    const handleEdit = (id: GridRowId) => {
+        const item = props.data.find((row) => row.id === id);
+        if (item) {
+            setEditingId(id);
+            setFormData(props.toFormData(item));
             setIsFormOpen(true);
         }
     };
 
-    const handleDeleteClick = (id: GridRowId) => {
-        setEditingItemId(id);
-        setIsDeleteConfirmOpen(true);
+    const handleDelete = (id: GridRowId) => {
+        setEditingId(id);
+        setIsDeleteOpen(true);
     };
 
-    const handleFormSubmit = async () => {
+    const handleSave = async () => {
         if (!formData) return;
-
-        try {
-            if (editingItemId !== null) {
-                await onUpdate(editingItemId, formData);
-            } else {
-                await onAdd(formData);
-            }
-            setIsFormOpen(false);
-            setFormData(null);
-            setEditingItemId(null);
-        } catch (error) {
-            console.error("Failed to save:", error);
+        if (editingId) {
+            await props.onUpdate(editingId, formData);
+        } else {
+            await props.onAdd(formData);
         }
-    };
-
-    const handleDeleteConfirm = async () => {
-        if (editingItemId !== null) {
-            try {
-                await onDelete(editingItemId);
-                setIsDeleteConfirmOpen(false);
-                setEditingItemId(null);
-            } catch (error) {
-                console.error("Failed to delete:", error);
-            }
-        }
-    };
-
-    const handleFormClose = () => {
         setIsFormOpen(false);
         setFormData(null);
-        setEditingItemId(null);
+        setEditingId(null);
     };
 
-    const handleDeleteClose = () => {
-        setIsDeleteConfirmOpen(false);
-        setEditingItemId(null);
+    const handleConfirmDelete = async () => {
+        if (editingId) {
+            await props.onDelete(editingId);
+            setIsDeleteOpen(false);
+            setEditingId(null);
+        }
     };
 
     const actionColumn: GridColDef = {
@@ -108,73 +71,49 @@ export default function CrudGrid<T extends { id: GridRowId }, TFormData>(
         type: "actions",
         headerName: "Actions",
         width: 100,
-        cellClassName: "actions",
         getActions: ({id}) => [
-            <GridActionsCellItem
-                icon={<Edit/>}
-                label="Edit"
-                onClick={() => handleEditClick(id)}
-                key="edit"
-            />,
-            <GridActionsCellItem
-                icon={<Delete/>}
-                label="Delete"
-                onClick={() => handleDeleteClick(id)}
-                key="delete"
-            />,
+            <GridActionsCellItem icon={<Edit/>} label="Edit" onClick={() => handleEdit(id)} key="edit"/>,
+            <GridActionsCellItem icon={<Delete/>} label="Delete" onClick={() => handleDelete(id)} key="delete"/>,
         ],
     };
 
     return (
         <Box sx={{height: "80vh", width: "100%"}}>
-            <Button
-                startIcon={<Add/>}
-                variant="contained"
-                onClick={handleAddClick}
-                sx={{mb: 2}}
-            >
-                Add {entityName}
+            <Button startIcon={<Add/>} variant="contained" onClick={handleAdd} sx={{mb: 2}}>
+                Add {props.entityName}
             </Button>
             <DataGrid
-                rows={data}
-                columns={[...columns, actionColumn]}
-                rowCount={rowCount}
-                loading={loading}
+                rows={props.data}
+                columns={[...props.columns, actionColumn]}
+                rowCount={props.rowCount}
+                loading={props.loading}
                 pageSizeOptions={PAGE_SIZE_OPTIONS}
-                paginationModel={paginationModel}
+                paginationModel={props.paginationModel}
                 paginationMode="server"
-                onPaginationModelChange={onPaginationModelChange}
+                onPaginationModelChange={props.onPaginationModelChange}
                 checkboxSelection
                 disableRowSelectionOnClick
             />
 
-            <Dialog open={isFormOpen} onClose={handleFormClose} maxWidth="sm" fullWidth>
-                <DialogTitle>
-                    {editingItemId === null ? `Add ${entityName}` : `Edit ${entityName}`}
-                </DialogTitle>
+            <Dialog open={isFormOpen} onClose={() => setIsFormOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>{editingId ? `Edit ${props.entityName}` : `Add ${props.entityName}`}</DialogTitle>
                 <DialogContent>
-                    <Box component="form" sx={{pt: 1}}>
-                        {formData && formFields(formData, setFormData)}
-                    </Box>
+                    {formData && props.formFields(formData, setFormData)}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleFormClose}>Cancel</Button>
-                    <Button onClick={handleFormSubmit} variant="contained">
-                        Save
-                    </Button>
+                    <Button onClick={() => setIsFormOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSave} variant="contained">Save</Button>
                 </DialogActions>
             </Dialog>
 
-            <Dialog open={isDeleteConfirmOpen} onClose={handleDeleteClose}>
-                <DialogTitle>Confirm Deletion</DialogTitle>
+            <Dialog open={isDeleteOpen} onClose={() => setIsDeleteOpen(false)}>
+                <DialogTitle>Delete {props.entityName}</DialogTitle>
                 <DialogContent>
-                    Are you sure you want to delete this {entityName}?
+                    Are you sure you want to delete this {props.entityName}?
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={handleDeleteClose}>Cancel</Button>
-                    <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-                        Delete
-                    </Button>
+                    <Button onClick={() => setIsDeleteOpen(false)}>Cancel</Button>
+                    <Button onClick={handleConfirmDelete} color="error" variant="contained">Delete</Button>
                 </DialogActions>
             </Dialog>
         </Box>

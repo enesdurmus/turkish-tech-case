@@ -1,6 +1,7 @@
 export interface PaginatedRequest {
     page: number;
     size: number;
+    sort: string;
 }
 
 export interface PaginatedResponse<T> {

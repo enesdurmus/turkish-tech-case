@@ -47,7 +47,7 @@ export default function TransportationPage() {
 
         setOriginLoading(true);
         try {
-            const response = await locationService.getAllCodes({page, size: 20});
+            const response = await locationService.getAllCodes({page, size: 20, sort: "locationCode,asc"});
             setOriginCodes(prev => page === 0 ? response.content : [...prev, ...response.content]);
             setOriginHasMore(!response.last);
         } catch (error) {
@@ -62,7 +62,7 @@ export default function TransportationPage() {
 
         setDestinationLoading(true);
         try {
-            const response = await locationService.getAllCodes({page, size: 20});
+            const response = await locationService.getAllCodes({page, size: 20, sort: "locationCode,asc"});
             setDestinationCodes(prev => page === 0 ? response.content : [...prev, ...response.content]);
             setDestinationHasMore(!response.last);
         } catch (error) {
@@ -100,193 +100,23 @@ export default function TransportationPage() {
     }, [destinationHasMore, destinationLoading, destinationPage, loadDestinationCodes]);
 
     const columns: GridColDef[] = [
+        {field: "origin", headerName: "Origin", width: 150, valueGetter: (_v, row) => row.origin?.name || ''},
+        {field: "destination", headerName: "Destination", width: 150, valueGetter: (_v, row) => row.destination?.name || ''},
+        {field: "transportationType", headerName: "Type", width: 130, valueFormatter: (value) => (value as string)?.replace('_', ' ') || ''},
         {
-            field: "origin",
-            headerName: "Origin",
-            width: 150,
-            valueGetter: (_value, row) => row.origin?.name || '',
-        },
-        {
-            field: "destination",
-            headerName: "Destination",
-            width: 150,
-            valueGetter: (_value, row) => row.destination?.name || '',
-        },
-        {
-            field: "transportationType",
-            headerName: "Type",
-            width: 130,
-            valueFormatter: (value) => (value as string)?.replace('_', ' ') || '',
-        },
-        {
-            field: "operatingDays",
-            headerName: "Operating Days",
-            width: 200,
-            valueGetter: (_value, row) => {
+            field: "operatingDays", headerName: "Operating Days", width: 200,
+            valueGetter: (_v, row) => {
                 const days = row.operatingDays;
-                if (!days || !Array.isArray(days) || days.length === 0) {
-                    return '';
-                }
-                const sortedDays = [...days].sort((a, b) => a - b);
-                return sortedDays
-                    .map(dayNum => DAYS_OF_WEEK_SHORT[dayNum] || '')
-                    .join(', ');
+                if (!days || !Array.isArray(days) || days.length === 0) return '';
+                return [...days].sort((a, b) => a - b).map(d => DAYS_OF_WEEK_SHORT[d] || '').join(', ');
             },
         },
-        {
-            field: "createdAt",
-            headerName: "Created At",
-            width: 180,
-            type: 'dateTime',
-            valueGetter: (value) => value && new Date(value),
-        },
-        {
-            field: "updatedAt",
-            headerName: "Updated At",
-            width: 180,
-            type: 'dateTime',
-            valueGetter: (value) => value && new Date(value),
-        },
+        {field: "createdAt", headerName: "Created At", width: 180, type: 'dateTime', valueGetter: (value) => value && new Date(value)},
+        {field: "updatedAt", headerName: "Updated At", width: 180, type: 'dateTime', valueGetter: (value) => value && new Date(value)},
     ];
-
-    const transportationFormFields = (
-        formData: TransportationFormData,
-        onChange: (data: TransportationFormData) => void
-    ) => (
-        <Box sx={{minWidth: 300}}>
-            <Autocomplete
-                options={originCodes}
-                value={formData.originCode || null}
-                onChange={(_event, newValue) => onChange({...formData, originCode: newValue || ''})}
-                loading={originLoading}
-                freeSolo={false}
-                disableClearable={false}
-                disablePortal
-                slotProps={{
-                    listbox: {
-                        onScroll: handleOriginScroll,
-                    },
-                }}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        autoFocus
-                        margin="dense"
-                        label="Origin Code"
-                        slotProps={{
-                            input: {
-                                ...params.InputProps,
-                                endAdornment: (
-                                    <>
-                                        {originLoading ? <CircularProgress color="inherit" size={20}/> : null}
-                                        {params.InputProps.endAdornment}
-                                    </>
-                                ),
-                            },
-                        }}
-                    />
-                )}
-            />
-
-            <Autocomplete
-                options={destinationCodes}
-                value={formData.destinationCode || null}
-                onChange={(_event, newValue) => onChange({...formData, destinationCode: newValue || ''})}
-                loading={destinationLoading}
-                freeSolo={false}
-                disableClearable={false}
-                disablePortal
-                slotProps={{
-                    listbox: {
-                        onScroll: handleDestinationScroll,
-                    },
-                }}
-                renderInput={(params) => (
-                    <TextField
-                        {...params}
-                        margin="dense"
-                        label="Destination Code"
-                        slotProps={{
-                            input: {
-                                ...params.InputProps,
-                                endAdornment: (
-                                    <>
-                                        {destinationLoading ? <CircularProgress color="inherit" size={20}/> : null}
-                                        {params.InputProps.endAdornment}
-                                    </>
-                                ),
-                            },
-                        }}
-                    />
-                )}
-            />
-
-            <FormControl fullWidth margin="dense">
-                <InputLabel>Transportation Type</InputLabel>
-                <Select
-                    value={formData.transportationType}
-                    label="Transportation Type"
-                    onChange={(e) => onChange({...formData, transportationType: e.target.value as TransportationType})}
-                >
-                    {Object.values(TransportationType).map((type) => (
-                        <MenuItem key={type} value={type}>
-                            {type.replace('_', ' ')}
-                        </MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-
-            <FormControl component="fieldset" margin="dense" fullWidth>
-                <Typography variant="subtitle1" sx={{mt: 1}}>Operating Days</Typography>
-                <FormGroup row>
-                    {DAYS_OF_WEEK_SHORT.map((day, index) => {
-                        const dayValue = index; // 0=Sun, 1=Mon, ..., 6=Sat
-                        return (
-                            <FormControlLabel
-                                key={day}
-                                control={
-                                    <Checkbox
-                                        checked={(formData.operatingDays || []).includes(dayValue)}
-                                        onChange={(e) => {
-                                            const currentDays = formData.operatingDays || [];
-                                            let newOperatingDays: number[];
-                                            if (e.target.checked) {
-                                                newOperatingDays = [...currentDays, dayValue].sort((a, b) => a - b);
-                                            } else {
-                                                newOperatingDays = currentDays.filter((d) => d !== dayValue);
-                                            }
-                                            onChange({...formData, operatingDays: newOperatingDays});
-                                        }}
-                                    />
-                                }
-                                label={day}
-                            />
-                        );
-                    })}
-                </FormGroup>
-            </FormControl>
-        </Box>
-    );
-
-    const getNewFormData = (): TransportationFormData => ({
-        originCode: '',
-        destinationCode: '',
-        transportationType: TransportationType.BUS,
-        operatingDays: [],
-    });
-
-    const toFormData = (transportation: Transportation): TransportationFormData => ({
-        originCode: transportation.origin?.locationCode || '',
-        destinationCode: transportation.destination?.locationCode || '',
-        transportationType: transportation.transportationType,
-        operatingDays: transportation.operatingDays || [],
-    });
-
     return (
         <>
-            <Typography variant="h4" gutterBottom>
-                Transportation
-            </Typography>
+            <Typography variant="h4" gutterBottom>Transportation</Typography>
             <CrudGrid<Transportation, TransportationFormData>
                 data={data}
                 columns={columns}
@@ -297,9 +127,65 @@ export default function TransportationPage() {
                 onAdd={handleCreate}
                 onUpdate={(id, formData) => handleUpdate(Number(id), formData)}
                 onDelete={(id) => handleDelete(Number(id))}
-                formFields={transportationFormFields}
-                getNewFormData={getNewFormData}
-                toFormData={toFormData}
+                formFields={(formData, onChange) => (
+                    <Box sx={{minWidth: 300}}>
+                        <Autocomplete
+                            options={originCodes}
+                            value={formData.originCode || null}
+                            onChange={(_e, newValue) => onChange({...formData, originCode: newValue || ''})}
+                            loading={originLoading}
+                            ListboxProps={{onScroll: handleOriginScroll}}
+                            renderInput={(params) => (
+                                <TextField {...params} autoFocus margin="dense" label="Origin Code"
+                                    InputProps={{...params.InputProps,
+                                        endAdornment: <>{originLoading ? <CircularProgress size={20}/> : null}{params.InputProps.endAdornment}</>}}/>
+                            )}
+                        />
+                        <Autocomplete
+                            options={destinationCodes}
+                            value={formData.destinationCode || null}
+                            onChange={(_e, newValue) => onChange({...formData, destinationCode: newValue || ''})}
+                            loading={destinationLoading}
+                            ListboxProps={{onScroll: handleDestinationScroll}}
+                            renderInput={(params) => (
+                                <TextField {...params} margin="dense" label="Destination Code"
+                                    InputProps={{...params.InputProps,
+                                        endAdornment: <>{destinationLoading ? <CircularProgress size={20}/> : null}{params.InputProps.endAdornment}</>}}/>
+                            )}
+                        />
+                        <FormControl fullWidth margin="dense">
+                            <InputLabel>Transportation Type</InputLabel>
+                            <Select value={formData.transportationType} label="Transportation Type"
+                                onChange={(e) => onChange({...formData, transportationType: e.target.value as TransportationType})}>
+                                {Object.values(TransportationType).map((type) => (
+                                    <MenuItem key={type} value={type}>{type.replace('_', ' ')}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Typography variant="subtitle1" sx={{mt: 1}}>Operating Days</Typography>
+                        <FormGroup row>
+                            {DAYS_OF_WEEK_SHORT.map((day, index) => (
+                                <FormControlLabel key={day}
+                                    control={<Checkbox checked={(formData.operatingDays || []).includes(index)}
+                                        onChange={(e) => {
+                                            const currentDays = formData.operatingDays || [];
+                                            const newDays = e.target.checked ?
+                                                [...currentDays, index].sort((a, b) => a - b) :
+                                                currentDays.filter((d) => d !== index);
+                                            onChange({...formData, operatingDays: newDays});
+                                        }}/>}
+                                    label={day}/>
+                            ))}
+                        </FormGroup>
+                    </Box>
+                )}
+                getNewFormData={() => ({originCode: '', destinationCode: '', transportationType: TransportationType.BUS, operatingDays: []})}
+                toFormData={(t) => ({
+                    originCode: t.origin?.locationCode || '',
+                    destinationCode: t.destination?.locationCode || '',
+                    transportationType: t.transportationType,
+                    operatingDays: t.operatingDays || [],
+                })}
                 entityName="Transportation"
             />
         </>

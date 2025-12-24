@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useState} from "react";
 import {GridPaginationModel} from "@mui/x-data-grid";
-import {PaginatedResponse} from "../types/api";
+import {PaginatedRequest, PaginatedResponse} from "../types/api";
 import {DEFAULT_PAGE_SIZE} from "../constants";
 
 interface CrudService<T, TFormData> {
-    getAll: (params: { page: number; size: number }) => Promise<PaginatedResponse<T>>;
+    getAll: (params: PaginatedRequest) => Promise<PaginatedResponse<T>>;
     create: (data: TFormData) => Promise<T>;
     update: (id: string | number, data: TFormData) => Promise<T>;
     delete: (id: string | number) => Promise<void>;
@@ -25,11 +25,10 @@ export function useCrudOperations<T, TFormData>(service: CrudService<T, TFormDat
             const response = await service.getAll({
                 page: paginationModel.page,
                 size: paginationModel.pageSize,
+                sort: "id,desc",
             });
             setData(response.content);
             setRowCount(response.totalElements);
-        } catch (error) {
-            console.error("Failed to fetch data:", error);
         } finally {
             setLoading(false);
         }
@@ -63,7 +62,6 @@ export function useCrudOperations<T, TFormData>(service: CrudService<T, TFormDat
         handleCreate,
         handleUpdate,
         handleDelete,
-        refetch: fetchData,
     };
 }
 

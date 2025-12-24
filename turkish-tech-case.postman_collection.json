@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "aa4024ed-5caf-4c4a-8b95-880e0b163e60",
+		"_postman_id": "323d4321-6aeb-43fa-aa70-fee12f209de9",
 		"name": "turkish-tech-case",
 		"description": "# 🚀 Get started here\n\nThis collection guides you through CRUD operations (GET, POST, PUT, DELETE), variables, and tests.\n\n## 🔖 **How to use this collection**\n\n#### **Step 1: Send requests**\n\nRESTful APIs allow you to perform CRUD operations using the POST, GET, PUT, and DELETE HTTP methods.\n\nThis collection contains each of these request types. Open each request and click \"Send\" to see what happens.\n\n#### **Step 2: View responses**\n\nObserve the response tab for status code (200 OK), response time, and size.\n\n#### **Step 3: Send new Body data**\n\nUpdate or add new data in \"Body\" in the POST request. Typically, Body data is also used in PUT and PATCH requests.\n\n```\n{\n    \"name\": \"Add your name in the body\"\n}\n\n```\n\n#### **Step 4: Update the variable**\n\nVariables enable you to store and reuse values in Postman. We have created a variable called `base_url` with the sample request [https://postman-api-learner.glitch.me](https://postman-api-learner.glitch.me). Replace it with your API endpoint to customize this collection.\n\n#### **Step 5: Add tests in the \"Tests\" tab**\n\nTests help you confirm that your API is working as expected. You can write test scripts in JavaScript and view the output in the \"Test Results\" tab.\n\n<img src=\"https://content.pstmn.io/b5f280a7-4b09-48ec-857f-0a7ed99d7ef8/U2NyZWVuc2hvdCAyMDIzLTAzLTI3IGF0IDkuNDcuMjggUE0ucG5n\">\n\n## 💪 Pro tips\n\n- Use folders to group related requests and organize the collection.\n- Add more scripts in \"Tests\" to verify if the API works as expected and execute flows.\n    \n\n## ℹ️ Resources\n\n[Building requests](https://learning.postman.com/docs/sending-requests/requests/)  \n[Authorizing requests](https://learning.postman.com/docs/sending-requests/authorization/)  \n[Using variables](https://learning.postman.com/docs/sending-requests/variables/)  \n[Managing environments](https://learning.postman.com/docs/sending-requests/managing-environments/)  \n[Writing scripts](https://learning.postman.com/docs/writing-scripts/intro-to-scripts/)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "21648088"
+		"_exporter_id": "38551669"
 	},
 	"item": [
 		{
@@ -120,7 +120,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"qwe\",\n    \"country\": \"test\",\n    \"city\": \"asd\",\n    \"locationCode\": \"dsf\"\n}",
+							"raw": "{\n    \"name\": \"test1\",\n    \"country\": \"test1\",\n    \"city\": \"test1\",\n    \"locationCode\": \"test1\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -166,7 +166,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"qqqq\",\n    \"country\": \"qqq\",\n    \"city\": \"qqqq\",\n    \"locationCode\": \"qqqq\"\n}",
+							"raw": "{\n    \"name\": \"test1\",\n    \"country\": \"test1\",\n    \"city\": \"test1\",\n    \"locationCode\": \"test1\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -343,7 +343,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"originId\": 4,\n    \"destinationId\": 5,\n    \"operatingDays\": [\n        1\n    ],\n    \"transportationType\": 0\n}",
+							"raw": "{\n    \"originCode\": \"test1\",\n    \"destinationCode\": \"test2\",\n    \"operatingDays\": [\n        1\n    ],\n    \"transportationType\": 0\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -389,7 +389,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"originId\": 4,\n    \"destinationId\": 5,\n    \"operatingDays\": [\n        1,2,3\n    ],\n    \"transportationType\": 0\n}",
+							"raw": "{\n    \"originCode\": \"test1\",\n    \"destinationCode\": \"test1\",\n    \"operatingDays\": [\n        1,2,3\n    ],\n    \"transportationType\": 0\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -474,11 +474,11 @@
 						}
 					],
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"originLocationCode\": \"saw\",\r\n    \"destinationLocationCode\": \"saw\"\r\n}",
+							"raw": "{\n    \"originCode\": \"test1\",\n    \"destinationCode\": \"test4\",\n    \"date\": \"1970-01-03T00:00:00Z\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"

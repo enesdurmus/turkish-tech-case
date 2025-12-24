@@ -1,30 +1,23 @@
 import axios from 'axios';
 
-const apiService = axios.create({
-    baseURL: 'http://localhost:8080/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+    headers: {'Content-Type': 'application/json'},
 });
 
-let errorHandler: ((message: string) => void) | null = null;
+let errorHandler = null;
 
-export const setErrorHandler = (handler: (message: string) => void) => {
+export const setErrorHandler = (handler) => {
     errorHandler = handler;
 };
 
-apiService.interceptors.response.use(
+api.interceptors.response.use(
     (response) => response,
     (error) => {
-        const message = error.response?.data?.message || error.message || 'An error occurred';
-        console.error('API Error:', message);
-
-        if (errorHandler) {
-            errorHandler(message);
-        }
-
+        const message = error.response?.data?.message || error.message || 'Something went wrong';
+        if (errorHandler) errorHandler(message);
         return Promise.reject(error);
     }
 );
 
-export default apiService;
+export default api;

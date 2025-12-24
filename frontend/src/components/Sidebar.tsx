@@ -1,4 +1,4 @@
-import {Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar,} from "@mui/material";
+import {Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar} from "@mui/material";
 import {Link} from "react-router-dom";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import CommuteIcon from "@mui/icons-material/Commute";
@@ -17,7 +17,7 @@ const menuItems = [
 ];
 
 export default function Sidebar({mobileOpen, onClose}: SidebarProps) {
-    const drawerContent = (
+    const menu = (
         <div>
             <Toolbar/>
             <List>
@@ -34,42 +34,29 @@ export default function Sidebar({mobileOpen, onClose}: SidebarProps) {
     );
 
     return (
-        <Box
-            component="nav"
-            sx={{width: {md: DRAWER_WIDTH}, flexShrink: {md: 0}}}
-        >
-            {/* Mobile Drawer */}
+        <Box component="nav" sx={{width: {md: DRAWER_WIDTH}, flexShrink: {md: 0}}}>
             <Drawer
                 variant="temporary"
                 open={mobileOpen}
                 onClose={onClose}
-                ModalProps={{
-                    keepMounted: true, // Better open performance on mobile.
-                }}
+                ModalProps={{keepMounted: true}}
                 sx={{
                     display: {xs: "block", md: "none"},
-                    "& .MuiDrawer-paper": {
-                        boxSizing: "border-box",
-                        width: DRAWER_WIDTH,
-                    },
+                    "& .MuiDrawer-paper": {width: DRAWER_WIDTH},
                 }}
             >
-                {drawerContent}
+                {menu}
             </Drawer>
 
-            {/* Desktop Drawer */}
             <Drawer
                 variant="permanent"
                 sx={{
                     display: {xs: "none", md: "block"},
-                    "& .MuiDrawer-paper": {
-                        boxSizing: "border-box",
-                        width: DRAWER_WIDTH,
-                    },
+                    "& .MuiDrawer-paper": {width: DRAWER_WIDTH},
                 }}
                 open
             >
-                {drawerContent}
+                {menu}
             </Drawer>
         </Box>
     );

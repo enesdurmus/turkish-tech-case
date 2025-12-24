@@ -1,27 +1,25 @@
-import apiService from "../api/apiService";
+import api from "../api/apiService";
 import {PaginatedRequest, PaginatedResponse} from "../types/api";
 import {Transportation, TransportationFormData} from "../types/transportation";
 
-const API_ENDPOINT = "/v1/transportations";
-
 export const transportationService = {
     getAll: async (params: PaginatedRequest): Promise<PaginatedResponse<Transportation>> => {
-        const response = await apiService.get<PaginatedResponse<Transportation>>(API_ENDPOINT, {params});
+        const response = await api.get("/v1/transportations", {params});
         return response.data;
     },
 
-    create: async (payload: TransportationFormData): Promise<Transportation> => {
-        const response = await apiService.post<Transportation>(API_ENDPOINT, payload);
+    create: async (data: TransportationFormData): Promise<Transportation> => {
+        const response = await api.post("/v1/transportations", data);
         return response.data;
     },
 
-    update: async (id: string | number, payload: TransportationFormData): Promise<Transportation> => {
-        const response = await apiService.put<Transportation>(`${API_ENDPOINT}/${id}`, payload);
+    update: async (id: string | number, data: TransportationFormData): Promise<Transportation> => {
+        const response = await api.put(`/v1/transportations/${id}`, data);
         return response.data;
     },
 
     delete: async (id: string | number): Promise<void> => {
-        await apiService.delete(`${API_ENDPOINT}/${id}`);
+        await api.delete(`/v1/transportations/${id}`);
     },
 };
 

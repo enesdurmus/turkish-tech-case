@@ -50,6 +50,10 @@ public class RouteService {
         LocationDto origin = originFuture.get();
         LocationDto destination = destinationFuture.get();
 
+        if (origin == null || destination == null) {
+            throw new IllegalArgumentException("Invalid origin or destination location code");
+        }
+
         Set<TransportationDto> transportations = fetchTransportations(origin.city(), destination.city(), request.date());
 
         RouteFindContext context = new RouteFindContext(

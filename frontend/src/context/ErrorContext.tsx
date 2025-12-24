@@ -1,38 +1,22 @@
-import React, {createContext, useContext, useState, ReactNode} from 'react';
+import {createContext, ReactNode, useContext, useState} from 'react';
 
-interface ErrorContextType {
-    showError: (message: string) => void;
-    error: string | null;
-    clearError: () => void;
-}
+const ErrorContext = createContext<any>(null);
 
-const ErrorContext = createContext<ErrorContextType | undefined>(undefined);
-
-export const ErrorProvider: React.FC<{ children: ReactNode }> = ({children}) => {
+export function ErrorProvider({children}: { children: ReactNode }) {
     const [error, setError] = useState<string | null>(null);
 
     const showError = (message: string) => {
         setError(message);
-        setTimeout(() => {
-            setError(null);
-        }, 2000);
-    };
-
-    const clearError = () => {
-        setError(null);
+        setTimeout(() => setError(null), 2000);
     };
 
     return (
-        <ErrorContext.Provider value={{showError, error, clearError}}>
+        <ErrorContext.Provider value={{error, showError, clearError: () => setError(null)}}>
             {children}
         </ErrorContext.Provider>
     );
-};
+}
 
-export const useError = () => {
-    const context = useContext(ErrorContext);
-    if (context === undefined) {
-        throw new Error('useError must be used within an ErrorProvider');
-    }
-    return context;
-};
+export function useError() {
+    return useContext(ErrorContext);
+}
