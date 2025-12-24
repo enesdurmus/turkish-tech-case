@@ -18,8 +18,8 @@ import {Transportation, TransportationFormData, TransportationType} from "../../
 import {transportationService} from "../../services/transportationService";
 import {locationService} from "../../services/locationService";
 import {useCrudOperations} from "../../hooks/useCrudOperations";
-import {DAYS_OF_WEEK, DAYS_OF_WEEK_SHORT} from "../../constants";
-import {useCallback, useEffect, useRef, useState} from "react";
+import {DAYS_OF_WEEK_SHORT} from "../../constants";
+import {useCallback, useEffect, useState} from "react";
 
 export default function TransportationPage() {
     const {
@@ -41,8 +41,6 @@ export default function TransportationPage() {
     const [destinationPage, setDestinationPage] = useState(0);
     const [originHasMore, setOriginHasMore] = useState(true);
     const [destinationHasMore, setDestinationHasMore] = useState(true);
-    const originListboxRef = useRef<HTMLUListElement>(null);
-    const destinationListboxRef = useRef<HTMLUListElement>(null);
 
     const loadOriginCodes = useCallback(async (page: number) => {
         if (originLoading || !originHasMore) return;
@@ -106,13 +104,13 @@ export default function TransportationPage() {
             field: "origin",
             headerName: "Origin",
             width: 150,
-            valueGetter: (value, row) => row.origin?.name || '',
+            valueGetter: (_value, row) => row.origin?.name || '',
         },
         {
             field: "destination",
             headerName: "Destination",
             width: 150,
-            valueGetter: (value, row) => row.destination?.name || '',
+            valueGetter: (_value, row) => row.destination?.name || '',
         },
         {
             field: "transportationType",
@@ -124,15 +122,14 @@ export default function TransportationPage() {
             field: "operatingDays",
             headerName: "Operating Days",
             width: 200,
-            valueGetter: (value, row) => {
+            valueGetter: (_value, row) => {
                 const days = row.operatingDays;
                 if (!days || !Array.isArray(days) || days.length === 0) {
                     return '';
                 }
-                return days
-                    .sort((a, b) => a - b)
+                const sortedDays = [...days].sort((a, b) => a - b);
+                return sortedDays
                     .map(dayNum => DAYS_OF_WEEK_SHORT[dayNum] || '')
-                    .filter(day => day !== '')
                     .join(', ');
             },
         },
@@ -160,11 +157,15 @@ export default function TransportationPage() {
             <Autocomplete
                 options={originCodes}
                 value={formData.originCode || null}
-                onChange={(_, newValue) => onChange({...formData, originCode: newValue || ''})}
+                onChange={(_event, newValue) => onChange({...formData, originCode: newValue || ''})}
                 loading={originLoading}
-                ListboxProps={{
-                    onScroll: handleOriginScroll,
-                    ref: originListboxRef,
+                freeSolo={false}
+                disableClearable={false}
+                disablePortal
+                slotProps={{
+                    listbox: {
+                        onScroll: handleOriginScroll,
+                    },
                 }}
                 renderInput={(params) => (
                     <TextField
@@ -172,14 +173,16 @@ export default function TransportationPage() {
                         autoFocus
                         margin="dense"
                         label="Origin Code"
-                        InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                                <>
-                                    {originLoading ? <CircularProgress color="inherit" size={20}/> : null}
-                                    {params.InputProps.endAdornment}
-                                </>
-                            ),
+                        slotProps={{
+                            input: {
+                                ...params.InputProps,
+                                endAdornment: (
+                                    <>
+                                        {originLoading ? <CircularProgress color="inherit" size={20}/> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                ),
+                            },
                         }}
                     />
                 )}
@@ -188,25 +191,31 @@ export default function TransportationPage() {
             <Autocomplete
                 options={destinationCodes}
                 value={formData.destinationCode || null}
-                onChange={(_, newValue) => onChange({...formData, destinationCode: newValue || ''})}
+                onChange={(_event, newValue) => onChange({...formData, destinationCode: newValue || ''})}
                 loading={destinationLoading}
-                ListboxProps={{
-                    onScroll: handleDestinationScroll,
-                    ref: destinationListboxRef,
+                freeSolo={false}
+                disableClearable={false}
+                disablePortal
+                slotProps={{
+                    listbox: {
+                        onScroll: handleDestinationScroll,
+                    },
                 }}
                 renderInput={(params) => (
                     <TextField
                         {...params}
                         margin="dense"
                         label="Destination Code"
-                        InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                                <>
-                                    {destinationLoading ? <CircularProgress color="inherit" size={20}/> : null}
-                                    {params.InputProps.endAdornment}
-                                </>
-                            ),
+                        slotProps={{
+                            input: {
+                                ...params.InputProps,
+                                endAdornment: (
+                                    <>
+                                        {destinationLoading ? <CircularProgress color="inherit" size={20}/> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                ),
+                            },
                         }}
                     />
                 )}
@@ -230,8 +239,8 @@ export default function TransportationPage() {
             <FormControl component="fieldset" margin="dense" fullWidth>
                 <Typography variant="subtitle1" sx={{mt: 1}}>Operating Days</Typography>
                 <FormGroup row>
-                    {DAYS_OF_WEEK.map((day, index) => {
-                        const dayValue = index;
+                    {DAYS_OF_WEEK_SHORT.map((day, index) => {
+                        const dayValue = index; // 0=Sun, 1=Mon, ..., 6=Sat
                         return (
                             <FormControlLabel
                                 key={day}
@@ -240,9 +249,12 @@ export default function TransportationPage() {
                                         checked={(formData.operatingDays || []).includes(dayValue)}
                                         onChange={(e) => {
                                             const currentDays = formData.operatingDays || [];
-                                            const newOperatingDays = e.target.checked
-                                                ? [...currentDays, dayValue].sort((a, b) => a - b)
-                                                : currentDays.filter((d) => d !== dayValue);
+                                            let newOperatingDays: number[];
+                                            if (e.target.checked) {
+                                                newOperatingDays = [...currentDays, dayValue].sort((a, b) => a - b);
+                                            } else {
+                                                newOperatingDays = currentDays.filter((d) => d !== dayValue);
+                                            }
                                             onChange({...formData, operatingDays: newOperatingDays});
                                         }}
                                     />

@@ -7,11 +7,22 @@ const apiService = axios.create({
     },
 });
 
+let errorHandler: ((message: string) => void) | null = null;
+
+export const setErrorHandler = (handler: (message: string) => void) => {
+    errorHandler = handler;
+};
+
 apiService.interceptors.response.use(
     (response) => response,
     (error) => {
         const message = error.response?.data?.message || error.message || 'An error occurred';
         console.error('API Error:', message);
+
+        if (errorHandler) {
+            errorHandler(message);
+        }
+
         return Promise.reject(error);
     }
 );

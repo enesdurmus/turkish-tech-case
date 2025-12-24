@@ -1,21 +1,21 @@
 import {
+    Typography,
     Box,
-    Button,
     FormControl,
     InputLabel,
-    List,
-    ListItem,
-    ListItemText,
-    MenuItem,
-    Paper,
     Select,
+    MenuItem,
+    Button,
+    Paper,
     SelectChangeEvent,
-    Typography,
+    Radio,
+    RadioGroup,
+    FormControlLabel,
 } from "@mui/material";
 import {DatePicker} from "@mui/x-date-pickers/DatePicker";
 import {LocalizationProvider} from "@mui/x-date-pickers/LocalizationProvider";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {useEffect, useState} from "react";
+import {useState, useEffect} from "react";
 import {Location} from "../../types/location";
 import {Route, SearchRouteRequest} from "../../types/route";
 import {locationService} from "../../services/locationService";
@@ -29,6 +29,7 @@ export default function RoutePage() {
     const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
     const [routes, setRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
+    const [selectedRouteIndex, setSelectedRouteIndex] = useState<number | null>(null);
 
     useEffect(() => {
         fetchLocations();
@@ -49,6 +50,7 @@ export default function RoutePage() {
         }
 
         setLoading(true);
+        setSelectedRouteIndex(null);
         try {
             const request: SearchRouteRequest = {
                 originCode: originCode,
@@ -88,18 +90,33 @@ export default function RoutePage() {
         }
     };
 
+    const handleRouteSelect = (index: number) => {
+        setSelectedRouteIndex(index);
+    };
+
+    const handleCloseDrawer = () => {
+        setSelectedRouteIndex(null);
+    };
+
     return (
         <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box>
-                {/* Header Section */}
-                <Box sx={{p: 2, borderBottom: 1, borderColor: "divider", mb: 3}}>
-                    <Typography variant="h5" sx={{mb: 0}}>
+            <Box sx={{display: "flex", flexDirection: "column", height: "100vh"}}>
+                {/* Full Width Header */}
+                <Paper
+                    elevation={1}
+                    sx={{
+                        width: "100%",
+                        p: 2,
+                        borderRadius: 0,
+                        borderBottom: 2,
+                        borderColor: "divider",
+                    }}
+                >
+                    <Typography variant="h5" sx={{mb: 2, fontWeight: 600}}>
                         HEADER
                     </Typography>
-                </Box>
 
-                <Box sx={{px: 3}}>
-                    <Box sx={{display: "flex", gap: 2, alignItems: "center", mb: 3}}>
+                    <Box sx={{display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap"}}>
                         {/* Origin */}
                         <FormControl sx={{minWidth: 200}}>
                             <InputLabel>Origin</InputLabel>
@@ -141,37 +158,214 @@ export default function RoutePage() {
                             variant="contained"
                             onClick={handleSearch}
                             disabled={!originCode || !destinationCode || !selectedDate || loading}
+                            sx={{height: 56}}
                         >
-                            Search
+                            {loading ? "Searching..." : "Search"}
                         </Button>
                     </Box>
 
-                    {/* Available Routes */}
-                    {routes.length > 0 && (
-                        <Paper sx={{p: 2, mt: 3}}>
-                            <Typography variant="h6" gutterBottom>
-                                Available Routes
+                    {/* Day Headers */}
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: 2,
+                            mt: 2,
+                            justifyContent: "flex-start",
+                            borderTop: 1,
+                            borderColor: "divider",
+                            pt: 1,
+                        }}
+                    >
+                        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day) => (
+                            <Typography
+                                key={day}
+                                variant="body2"
+                                sx={{minWidth: 40, textAlign: "center", fontWeight: 500}}
+                            >
+                                {day}
                             </Typography>
-                            <List>
-                                {routes.map((route, index) => (
-                                    <ListItem key={index} sx={{flexDirection: "column", alignItems: "flex-start"}}>
-                                        <ListItemText
-                                            primary={`Via ${route.steps
-                                                .map((step) => step.destination.name)
-                                                .join(" → ")}`}
-                                            secondary={route.steps
-                                                .map(
-                                                    (step) =>
-                                                        `${getTransportationIcon(step.transportationType)} ${
-                                                            step.transportationType
-                                                        }: ${step.origin.name} → ${step.destination.name}`
-                                                )
-                                                .join(" | ")}
-                                        />
-                                    </ListItem>
+                        ))}
+                    </Box>
+                </Paper>
+
+                {/* Main Content Area with Split Layout */}
+                <Box sx={{display: "flex", flex: 1, overflow: "hidden"}}>
+                    {/* Left Side - Routes List */}
+                    <Box sx={{
+                        flex: 1,
+                        p: 3,
+                        overflow: "auto",
+                        borderRight: selectedRouteIndex !== null ? 1 : 0,
+                        borderColor: "divider"
+                    }}>
+                        {routes.length > 0 && (
+                            <Box>
+                                <Typography variant="h6" gutterBottom sx={{mb: 2}}>
+                                    Available Routes
+                                </Typography>
+                                <RadioGroup value={selectedRouteIndex?.toString() || ""}>
+                                    {routes.map((route, index) => (
+                                        <Paper
+                                            key={index}
+                                            sx={{
+                                                p: 2,
+                                                mb: 2,
+                                                cursor: "pointer",
+                                                border: selectedRouteIndex === index ? 2 : 1,
+                                                borderColor:
+                                                    selectedRouteIndex === index ? "primary.main" : "divider",
+                                                "&:hover": {
+                                                    bgcolor: "action.hover",
+                                                },
+                                            }}
+                                            onClick={() => handleRouteSelect(index)}
+                                        >
+                                            <FormControlLabel
+                                                value={index.toString()}
+                                                control={<Radio/>}
+                                                label={
+                                                    <Box sx={{ml: 1}}>
+                                                        <Typography variant="subtitle1" sx={{fontWeight: 500}}>
+                                                            Via {route.steps
+                                                            .map((step) => step.destination.name)
+                                                            .join(" → ")}
+                                                        </Typography>
+                                                        <Box sx={{display: "flex", gap: 1, flexWrap: "wrap", mt: 1}}>
+                                                            {route.steps.map((step, stepIndex) => (
+                                                                <Typography
+                                                                    key={stepIndex}
+                                                                    variant="body2"
+                                                                    color="text.secondary"
+                                                                >
+                                                                    {getTransportationIcon(step.transportationType)}{" "}
+                                                                    {step.transportationType.replace("_", " ")}
+                                                                    {stepIndex < route.steps.length - 1 && " →"}
+                                                                </Typography>
+                                                            ))}
+                                                        </Box>
+                                                    </Box>
+                                                }
+                                            />
+                                        </Paper>
+                                    ))}
+                                </RadioGroup>
+                            </Box>
+                        )}
+
+                        {routes.length === 0 && !loading && originCode && destinationCode && (
+                            <Typography variant="body1" color="text.secondary" sx={{textAlign: "center", mt: 4}}>
+                                No routes found. Try different locations or dates.
+                            </Typography>
+                        )}
+                    </Box>
+
+                    {/* Right Side - Route Details Panel */}
+                    {selectedRouteIndex !== null && routes[selectedRouteIndex] && (
+                        <Box
+                            sx={{
+                                width: 350,
+                                p: 3,
+                                bgcolor: "background.paper",
+                                overflow: "auto",
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    mb: 3,
+                                }}
+                            >
+                                <Typography variant="h6" sx={{fontWeight: 600}}>
+                                    Route Details
+                                </Typography>
+                                <Button onClick={handleCloseDrawer} size="small">
+                                    Close
+                                </Button>
+                            </Box>
+
+                            {/* Timeline View */}
+                            <Box sx={{position: "relative", pl: 1}}>
+                                {routes[selectedRouteIndex].steps.map((step, stepIndex) => (
+                                    <Box key={stepIndex} sx={{position: "relative"}}>
+                                        {/* Origin Location with Dot */}
+                                        <Box sx={{display: "flex", alignItems: "center"}}>
+                                            <Box sx={{mr: 2, position: "relative"}}>
+                                                {/* Empty Circle Dot for Location */}
+                                                <Box
+                                                    sx={{
+                                                        width: 18,
+                                                        height: 18,
+                                                        borderRadius: "50%",
+                                                        border: "2px solid",
+                                                        borderColor: "#000",
+                                                        bgcolor: "white",
+                                                        flexShrink: 0,
+                                                        position: "relative",
+                                                        zIndex: 1,
+                                                    }}
+                                                />
+                                                {/* Dotted Connecting Line - only if not the last step */}
+                                                {stepIndex < routes[selectedRouteIndex].steps.length && (
+                                                    <Box
+                                                        sx={{
+                                                            position: "absolute",
+                                                            top: 18,
+                                                            left: "50%",
+                                                            transform: "translateX(-50%)",
+                                                            width: 0,
+                                                            height: "calc(100% + 45px)",
+                                                            borderLeft: "2px dotted",
+                                                            borderColor: "#666",
+                                                        }}
+                                                    />
+                                                )}
+                                            </Box>
+                                            <Box sx={{flex: 1}}>
+                                                <Typography variant="body1" sx={{fontWeight: 600}}>
+                                                    {step.origin.name}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+
+                                        {/* Transportation Info (between dots) */}
+                                        <Box sx={{ml: 4.5, mb: 3, mt: 1.5}}>
+                                            <Box sx={{display: "flex", alignItems: "center", gap: 0.5}}>
+                                                <Typography variant="body2">
+                                                    {getTransportationIcon(step.transportationType)}
+                                                </Typography>
+                                                <Typography variant="body2" color="text.secondary"
+                                                            sx={{textTransform: "uppercase"}}>
+                                                    {step.transportationType.replace("_", " ")}
+                                                </Typography>
+                                            </Box>
+                                        </Box>
+                                    </Box>
                                 ))}
-                            </List>
-                        </Paper>
+
+                                {/* Final Destination */}
+                                {routes[selectedRouteIndex].steps.length > 0 && (
+                                    <Box sx={{display: "flex", alignItems: "center"}}>
+                                        <Box sx={{mr: 2}}>
+                                            <Box
+                                                sx={{
+                                                    width: 18,
+                                                    height: 18,
+                                                    borderRadius: "50%",
+                                                    border: "2px solid",
+                                                    borderColor: "#000",
+                                                    bgcolor: "white",
+                                                }}
+                                            />
+                                        </Box>
+                                        <Typography variant="body1" sx={{fontWeight: 600}}>
+                                            {routes[selectedRouteIndex].steps[routes[selectedRouteIndex].steps.length - 1].destination.name}
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Box>
                     )}
                 </Box>
             </Box>

@@ -1,9 +1,10 @@
 export interface PaginatedRequest {
-  page: number;
-  size: number;
+    page: number;
+    size: number;
 }
 
 export interface PaginatedResponse<T> {
-  content: T[];
-  totalElements: number;
+    content: T[];
+    totalElements: number;
+    last: boolean;
 }

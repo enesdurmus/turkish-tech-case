@@ -15,12 +15,12 @@ export const transportationService = {
         return response.data;
     },
 
-    update: async (id: number, payload: TransportationFormData): Promise<Transportation> => {
+    update: async (id: string | number, payload: TransportationFormData): Promise<Transportation> => {
         const response = await apiService.put<Transportation>(`${API_ENDPOINT}/${id}`, payload);
         return response.data;
     },
 
-    delete: async (id: number): Promise<void> => {
+    delete: async (id: string | number): Promise<void> => {
         await apiService.delete(`${API_ENDPOINT}/${id}`);
     },
 };
