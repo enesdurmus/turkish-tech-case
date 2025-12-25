@@ -5,21 +5,38 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 
 interface TransportationRepository extends JpaRepository<Transportation, Long> {
 
     @Query("""
-            SELECT DISTINCT t
+            SELECT t
             FROM Transportation t
             JOIN FETCH t.origin o
             JOIN FETCH t.destination d
             JOIN FETCH t.operatingDays od
             WHERE od = :operatingDay
-            AND (
-                o.city IN (:cities)
-                OR d.city IN (:cities)
-            )
+            AND o.country = :originCountry
+            AND d.country = :destinationCountry
+            AND t.transportationType = :transportationType
             """)
-    List<Transportation> findAllByCitiesAndOperatingDay(@Param("cities") List<String> cities, @Param("operatingDay") Integer operatingDay);
+    List<Transportation> findTransportationsBetweenCountries(@Param("originCountry") String originCountry,
+                                                             @Param("destinationCountry") String destinationCountry,
+                                                             @Param("transportationType") TransportationType transportationType,
+                                                             @Param("operatingDay") Integer operatingDay);
+
+    @Query("""
+            SELECT t
+            FROM Transportation t
+            JOIN FETCH t.origin o
+            JOIN FETCH t.destination d
+            JOIN FETCH t.operatingDays od
+            WHERE od = :operatingDay
+            AND o.locationCode IN (:originCode)
+            AND d.locationCode IN (:destinationCodes)
+            """)
+    List<Transportation> findTransportationsBetweenLocationCodesAndOperatingDay(@Param("originCode") Set<String> originCodes,
+                                                                                @Param("destinationCodes") Set<String> destinationCodes,
+                                                                                @Param("operatingDay") Integer operatingDay);
 
 }

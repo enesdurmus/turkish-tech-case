@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -71,10 +70,22 @@ public class TransportationService {
         repository.deleteById(id);
     }
 
-    @Cacheable(value = "transportations", key = "#cities + '_' + #operatingDay")
-    public Set<TransportationDto> findAllByCitiesAndOperatingDay(List<String> cities, DayOfWeek operatingDay) {
-        int dayValue = operatingDay.ordinal();
-        return repository.findAllByCitiesAndOperatingDay(cities, dayValue)
+    @Cacheable(value = "transportations", key = "#originCountry + '_' + #destinationCountry + '_' + #transportationType + '_' + #operatingDay")
+    public Set<TransportationDto> findTransportationsBetweenCountries(String originCountry,
+                                                                      String destinationCountry,
+                                                                      TransportationType transportationType,
+                                                                      DayOfWeek operatingDay) {
+        return repository.findTransportationsBetweenCountries(originCountry, destinationCountry, transportationType, operatingDay.ordinal())
+                .stream()
+                .map(mapper::toDto)
+                .collect(Collectors.toSet());
+    }
+
+    @Cacheable(value = "transportations", key = "#originCodes + '_' + #destinationCodes + '_' + #operatingDay")
+    public Set<TransportationDto> findTransportationsBetweenLocationCodesAndOperatingDay(Set<String> originCodes,
+                                                                                         Set<String> destinationCodes,
+                                                                                         DayOfWeek operatingDay) {
+        return repository.findTransportationsBetweenLocationCodesAndOperatingDay(originCodes, destinationCodes, operatingDay.ordinal())
                 .stream()
                 .map(mapper::toDto)
                 .collect(Collectors.toSet());
