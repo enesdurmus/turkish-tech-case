@@ -40,6 +40,7 @@ public class TransportationService {
         return mapper.toDto(repository.findById(id).orElse(null));
     }
 
+    @Transactional
     @CacheEvict(value = "transportations", allEntries = true)
     public TransportationDto createTransportation(TransportationSaveRequest request) {
         if (request.originCode().equals(request.destinationCode())) {
@@ -47,8 +48,8 @@ public class TransportationService {
         }
 
         Transportation transportation = new Transportation();
-        transportation.setOrigin(locationService.getLocationEntityByCode(request.originCode()));
-        transportation.setDestination(locationService.getLocationEntityByCode(request.destinationCode()));
+        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originCode()));
+        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationCode()));
         transportation.setOperatingDays(request.operatingDays());
         transportation.setTransportationType(request.transportationType());
         return mapper.toDto(repository.save(transportation));
@@ -58,8 +59,8 @@ public class TransportationService {
     @CacheEvict(value = "transportations", allEntries = true)
     public @Nullable TransportationDto updateTransportation(long id, @Valid TransportationSaveRequest request) {
         Transportation transportation = repository.findById(id).orElseThrow(EntityNotFoundException::new);
-        transportation.setOrigin(locationService.getLocationEntityByCode(request.originCode()));
-        transportation.setDestination(locationService.getLocationEntityByCode(request.destinationCode()));
+        transportation.setOrigin(locationService.getReferenceByLocationCode(request.originCode()));
+        transportation.setDestination(locationService.getReferenceByLocationCode(request.destinationCode()));
         transportation.setOperatingDays(request.operatingDays());
         transportation.setTransportationType(request.transportationType());
         return mapper.toDto(repository.save(transportation));

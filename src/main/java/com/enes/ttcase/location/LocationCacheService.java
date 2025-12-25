@@ -13,15 +13,18 @@ class LocationCacheService {
     private static final Logger log = LoggerFactory.getLogger(LocationCacheService.class);
 
     private final LocationRepository repository;
+    private final LocationMapper mapper;
 
-    LocationCacheService(LocationRepository repository) {
+    LocationCacheService(LocationRepository repository,
+                         LocationMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     @Nullable
     @Cacheable(value = "locations", key = "#locationCode", unless = "#result == null")
-    public Location getLocationByCode(String locationCode) {
-        return repository.findByLocationCode(locationCode);
+    public LocationDto getLocationByCode(String locationCode) {
+        return mapper.toDto(repository.findByLocationCode(locationCode));
     }
 
     @CacheEvict(value = "locations", key = "#locationCode")

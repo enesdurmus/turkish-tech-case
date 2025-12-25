@@ -67,12 +67,16 @@ public class LocationService {
 
     @Nullable
     public LocationDto getByLocationCode(String locationCode) {
-        return mapper.toDto(locationCacheService.getLocationByCode(locationCode));
+        return locationCacheService.getLocationByCode(locationCode);
     }
 
     @Nullable
-    public Location getLocationEntityByCode(String locationCode) {
-        return locationCacheService.getLocationByCode(locationCode);
+    public Location getReferenceByLocationCode(String locationCode) {
+        LocationDto location = locationCacheService.getLocationByCode(locationCode);
+        if (location == null) {
+            throw new EntityNotFoundException("Location with code " + locationCode + " not found");
+        }
+        return repository.getReferenceById(location.id());
     }
 
 }
