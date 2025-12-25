@@ -7,3 +7,6 @@ databaseChangeLog:
 
   - includeAll:
       path: db/changelog/transportation
+
+  - includeAll:
+      path: db/changelog/bootstrap
