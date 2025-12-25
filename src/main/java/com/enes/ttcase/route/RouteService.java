@@ -40,10 +40,10 @@ public class RouteService {
         }
 
         CompletableFuture<LocationDto> originFuture = CompletableFuture.supplyAsync(
-                () -> locationService.findByLocationCode(request.originCode()),
+                () -> locationService.getByLocationCode(request.originCode()),
                 executor);
         CompletableFuture<LocationDto> destinationFuture = CompletableFuture.supplyAsync(
-                () -> locationService.findByLocationCode(request.destinationCode()),
+                () -> locationService.getByLocationCode(request.destinationCode()),
                 executor);
 
         CompletableFuture.allOf(originFuture, destinationFuture).join();

@@ -32,12 +32,12 @@ class LocationController {
 
     @GetMapping
     public Page<LocationDto> findAll(Pageable pageable) {
-        return locationService.getAllRoutes(pageable);
+        return locationService.getAllLocations(pageable);
     }
 
     @GetMapping("/{id}")
     public LocationDto getLocationById(@PathVariable long id) {
-        return locationService.findById(id);
+        return locationService.getById(id);
     }
 
     @PutMapping("/{id}")

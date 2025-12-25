@@ -3,6 +3,7 @@ package com.enes.ttcase.location;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.jspecify.annotations.Nullable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -11,16 +12,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class LocationService {
 
+    private final LocationCacheService locationCacheService;
     private final LocationRepository repository;
     private final LocationMapper mapper;
 
-    LocationService(LocationRepository repository,
+    LocationService(LocationCacheService locationCacheService,
+                    LocationRepository repository,
                     LocationMapper mapper) {
+        this.locationCacheService = locationCacheService;
         this.repository = repository;
         this.mapper = mapper;
     }
 
-    public Page<LocationDto> getAllRoutes(Pageable pageable) {
+    public Page<LocationDto> getAllLocations(Pageable pageable) {
         return repository.findAll(pageable)
                 .map(mapper::toDto);
     }
@@ -31,7 +35,7 @@ public class LocationService {
     }
 
     @Nullable
-    public LocationDto findById(Long id) {
+    public LocationDto getById(long id) {
         return mapper.toDto(repository.findById(id).orElse(null));
     }
 
@@ -45,6 +49,7 @@ public class LocationService {
     }
 
     @Transactional
+    @CacheEvict(value = "locations", key = "#result.locationCode()")
     public @Nullable LocationDto updateLocation(long id, @Valid LocationSaveRequest request) {
         Location location = repository.findById(id).orElseThrow(EntityNotFoundException::new);
         location.setName(request.name());
@@ -55,17 +60,19 @@ public class LocationService {
     }
 
     public void deleteLocation(long id) {
+        Location location = repository.findById(id).orElseThrow(EntityNotFoundException::new);
+        locationCacheService.evictLocation(location.getLocationCode());
         repository.deleteById(id);
     }
 
     @Nullable
-    public LocationDto findByLocationCode(String locationCode) {
-        return mapper.toDto(getReferenceByLocationCode(locationCode));
+    public LocationDto getByLocationCode(String locationCode) {
+        return mapper.toDto(locationCacheService.getLocationByCode(locationCode));
     }
 
     @Nullable
-    public Location getReferenceByLocationCode(String locationCode) {
-        return repository.findByLocationCode(locationCode);
+    public Location getLocationEntityByCode(String locationCode) {
+        return locationCacheService.getLocationByCode(locationCode);
     }
 
 }
