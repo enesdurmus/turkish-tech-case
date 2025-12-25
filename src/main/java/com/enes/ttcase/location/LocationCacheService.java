@@ -19,7 +19,7 @@ class LocationCacheService {
     }
 
     @Nullable
-    @Cacheable(value = "locations", key = "#locationCode")
+    @Cacheable(value = "locations", key = "#locationCode", unless = "#result == null")
     public Location getLocationByCode(String locationCode) {
         return repository.findByLocationCode(locationCode);
     }

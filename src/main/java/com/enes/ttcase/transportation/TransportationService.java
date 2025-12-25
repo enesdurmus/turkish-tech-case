@@ -42,6 +42,10 @@ public class TransportationService {
 
     @CacheEvict(value = "transportations", allEntries = true)
     public TransportationDto createTransportation(TransportationSaveRequest request) {
+        if (request.originCode().equals(request.destinationCode())) {
+            throw new IllegalArgumentException("Origin code and Destination code cannot be the same");
+        }
+
         Transportation transportation = new Transportation();
         transportation.setOrigin(locationService.getLocationEntityByCode(request.originCode()));
         transportation.setDestination(locationService.getLocationEntityByCode(request.destinationCode()));

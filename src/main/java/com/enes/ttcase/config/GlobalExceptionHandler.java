@@ -11,10 +11,16 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(value = {IllegalArgumentException.class, DataIntegrityViolationException.class})
+    @ExceptionHandler(value = {IllegalArgumentException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public @ResponseBody ErrorResponse handleException(IllegalArgumentException ex) {
         return ErrorResponse.create(ex, HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(value = {DataIntegrityViolationException.class})
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public @ResponseBody ErrorResponse handleException(DataIntegrityViolationException ex) {
+        return ErrorResponse.create(ex, HttpStatus.CONFLICT, "Data integrity violation occurred.");
     }
 
 }
