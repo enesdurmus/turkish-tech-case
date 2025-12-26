@@ -12,9 +12,9 @@ CREATE TABLE IF NOT EXISTS location
     updated_at    TIMESTAMP             DEFAULT NULL
 );
 
--- changeset enes:location-city-idx
-CREATE INDEX idx_city
-    ON location (city);
+-- changeset enes:location-country-idx
+CREATE INDEX idx_country
+    ON location (country);
 
 -- changeset enes:location-updated-at-trigger
 CREATE OR REPLACE TRIGGER location_trigger_set_updated_at
