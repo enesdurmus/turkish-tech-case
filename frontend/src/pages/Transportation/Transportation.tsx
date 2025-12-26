@@ -10,6 +10,7 @@ import {
     Select,
     Typography
 } from "@mui/material";
+import {useCallback, useEffect, useRef, useState} from "react";
 import CrudGrid from "../../components/CrudGrid";
 import InfiniteScrollableSelect from "../../components/InfiniteScrollableSelect";
 import {Transportation, TransportationFormData, TransportationType} from "../../types/transportation";
@@ -29,6 +30,42 @@ export default function TransportationPage() {
         handleUpdate,
         handleDelete,
     } = useCrudOperations<Transportation, TransportationFormData>(transportationService);
+
+    const [locationCodes, setLocationCodes] = useState<string[]>([]);
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationHasMore, setLocationHasMore] = useState(true);
+    const locationPageRef = useRef(0);
+    const locationLoadingRef = useRef(false);
+
+    const loadLocationCodes = useCallback(async () => {
+        if (locationLoadingRef.current || !locationHasMore) return;
+
+        locationLoadingRef.current = true;
+        setLocationLoading(true);
+        try {
+            const response = await locationService.getAllCodes({
+                page: locationPageRef.current,
+                size: 10,
+                sort: "locationCode,asc"
+            });
+            setLocationCodes(prev =>
+                locationPageRef.current === 0 ? response.content : [...prev, ...response.content]
+            );
+            setLocationHasMore(!response.last);
+            locationPageRef.current++;
+        } catch (error) {
+            console.error("Failed to load location codes:", error);
+        } finally {
+            locationLoadingRef.current = false;
+            setLocationLoading(false);
+        }
+    }, [locationHasMore]);
+
+    useEffect(() => {
+        if (locationCodes.length === 0) {
+            loadLocationCodes();
+        }
+    }, [locationCodes.length, loadLocationCodes]);
 
 
     const columns: GridColDef[] = [
@@ -87,16 +124,20 @@ export default function TransportationPage() {
                             value={formData.originCode || null}
                             onChange={(value) => onChange({...formData, originCode: value})}
                             label="Origin Code"
-                            loadData={locationService.getAllCodes}
-                            pageSize={10}
+                            options={locationCodes}
+                            loading={locationLoading}
+                            onLoadMore={loadLocationCodes}
+                            hasMore={locationHasMore}
                             autoFocus={true}
                         />
                         <InfiniteScrollableSelect
                             value={formData.destinationCode || null}
                             onChange={(value) => onChange({...formData, destinationCode: value})}
                             label="Destination Code"
-                            loadData={locationService.getAllCodes}
-                            pageSize={10}
+                            options={locationCodes}
+                            loading={locationLoading}
+                            onLoadMore={loadLocationCodes}
+                            hasMore={locationHasMore}
                         />
                         <FormControl fullWidth margin="dense">
                             <InputLabel>Transportation Type</InputLabel>

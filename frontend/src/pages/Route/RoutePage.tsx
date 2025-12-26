@@ -1,8 +1,9 @@
 import {Box, Button, FormControlLabel, Paper, Radio, RadioGroup, Typography} from "@mui/material";
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import InfiniteScrollableSelect from "../../components/InfiniteScrollableSelect";
+import {Location} from "../../types/location";
 import {Route} from "../../types/route";
 import {locationService} from "../../services/locationService";
 import {routeService} from "../../services/routeService";
@@ -15,6 +16,45 @@ export default function RoutePage() {
     const [routes, setRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedRouteIndex, setSelectedRouteIndex] = useState<number | null>(null);
+
+    // Location state - shared across all dialog opens
+    const [locations, setLocations] = useState<Location[]>([]);
+    const [locationLoading, setLocationLoading] = useState(false);
+    const [locationHasMore, setLocationHasMore] = useState(true);
+    const locationPageRef = useRef(0);
+    const locationLoadingRef = useRef(false);
+
+    // Load locations
+    const loadLocations = useCallback(async () => {
+        if (locationLoadingRef.current || !locationHasMore) return;
+
+        locationLoadingRef.current = true;
+        setLocationLoading(true);
+        try {
+            const response = await locationService.getAll({
+                page: locationPageRef.current,
+                size: 10,
+                sort: "name,asc"
+            });
+            setLocations(prev =>
+                locationPageRef.current === 0 ? response.content : [...prev, ...response.content]
+            );
+            setLocationHasMore(!response.last);
+            locationPageRef.current++;
+        } catch (error) {
+            console.error("Failed to load locations:", error);
+        } finally {
+            locationLoadingRef.current = false;
+            setLocationLoading(false);
+        }
+    }, [locationHasMore]);
+
+    // Load initial data
+    useEffect(() => {
+        if (locations.length === 0) {
+            loadLocations();
+        }
+    }, [locations.length, loadLocations]);
 
     const handleSearch = async () => {
         if (!originCode || !destinationCode || !selectedDate) return;
@@ -49,21 +89,29 @@ export default function RoutePage() {
                        sx={{width: "100%", p: 2, borderRadius: 0, borderBottom: 2, borderColor: "divider"}}>
                     <Typography variant="h5" sx={{mb: 2, fontWeight: 600}}>Route Search</Typography>
                     <Box sx={{display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap"}}>
-                        <InfiniteScrollableSelect
+                        <InfiniteScrollableSelect<Location>
                             sx={{minWidth: 200}}
                             value={originCode || null}
                             onChange={setOriginCode}
                             label="Origin"
-                            loadData={locationService.getAllCodes}
-                            pageSize={10}
+                            options={locations}
+                            loading={locationLoading}
+                            onLoadMore={loadLocations}
+                            hasMore={locationHasMore}
+                            getOptionLabel={(location) => location.name}
+                            getOptionValue={(location) => location.locationCode}
                         />
-                        <InfiniteScrollableSelect
+                        <InfiniteScrollableSelect<Location>
                             sx={{minWidth: 200}}
                             value={destinationCode || null}
                             onChange={setDestinationCode}
                             label="Destination"
-                            loadData={locationService.getAllCodes}
-                            pageSize={10}
+                            options={locations}
+                            loading={locationLoading}
+                            onLoadMore={loadLocations}
+                            hasMore={locationHasMore}
+                            getOptionLabel={(location) => location.name}
+                            getOptionValue={(location) => location.locationCode}
                         />
                         <DatePicker label="Date" value={selectedDate} onChange={setSelectedDate}
                                     slotProps={{textField: {sx: {minWidth: 200}}}}/>
@@ -80,7 +128,7 @@ export default function RoutePage() {
                         flex: 1,
                         p: 3,
                         overflow: "auto",
-                        borderRight: selectedRouteIndex !== null ? 1 : 0,
+                        borderRight: selectedRouteIndex === null ? 0 : 1,
                         borderColor: "divider"
                     }}>
                         {routes.length > 0 && (

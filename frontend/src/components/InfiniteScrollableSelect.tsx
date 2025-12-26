@@ -1,56 +1,33 @@
 import {Autocomplete, CircularProgress, TextField} from "@mui/material";
-import {useCallback, useEffect, useRef, useState} from "react";
-import {PaginatedRequest, PaginatedResponse} from "../types/api";
+import {useCallback} from "react";
 
-interface InfiniteScrollableSelectProps {
+interface InfiniteScrollableSelectProps<T> {
     value: string | null;
     onChange: (value: string) => void;
     label: string;
-    loadData: (params: PaginatedRequest) => Promise<PaginatedResponse<string>>;
-    pageSize?: number;
-    sort?: string;
+    options: T[];
+    loading: boolean;
+    onLoadMore: () => void;
+    hasMore: boolean;
     autoFocus?: boolean;
     sx?: object;
+    getOptionLabel?: (option: T) => string;
+    getOptionValue?: (option: T) => string;
 }
 
-export default function InfiniteScrollableSelect({
-                                                     value,
-                                                     onChange,
-                                                     label,
-                                                     loadData,
-                                                     pageSize = 50,
-                                                     sort = "id,asc",
-                                                     autoFocus = false,
-                                                     sx
-                                                 }: InfiniteScrollableSelectProps) {
-    const [options, setOptions] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
-
-    const pageRef = useRef(0);
-    const hasMoreRef = useRef(true);
-    const loadingRef = useRef(false);
-
-    const loadOptions = useCallback(async (page: number) => {
-        if (loadingRef.current || !hasMoreRef.current) return;
-
-        loadingRef.current = true;
-        setLoading(true);
-        try {
-            const response = await loadData({page, size: pageSize, sort});
-            setOptions(prev => page === 0 ? response.content : [...prev, ...response.content]);
-            hasMoreRef.current = !response.last;
-            pageRef.current = page;
-        } catch (error) {
-            console.error(`Failed to load ${label} options:`, error);
-        } finally {
-            loadingRef.current = false;
-            setLoading(false);
-        }
-    }, [loadData, pageSize, sort, label]);
-
-    useEffect(() => {
-        loadOptions(0);
-    }, [loadOptions]);
+export default function InfiniteScrollableSelect<T = string>({
+                                                                 value,
+                                                                 onChange,
+                                                                 label,
+                                                                 options,
+                                                                 loading,
+                                                                 onLoadMore,
+                                                                 hasMore,
+                                                                 autoFocus = false,
+                                                                 sx,
+                                                                 getOptionLabel,
+                                                                 getOptionValue
+                                                             }: InfiniteScrollableSelectProps<T>) {
 
     const handleScroll = useCallback((event: React.SyntheticEvent) => {
         const listboxNode = event.currentTarget as HTMLUListElement;
@@ -59,19 +36,31 @@ export default function InfiniteScrollableSelect({
         const clientHeight = listboxNode.clientHeight;
 
         if (scrollTop + clientHeight >= scrollHeight - 10) {
-            if (hasMoreRef.current && !loadingRef.current) {
-                const nextPage = pageRef.current + 1;
-                loadOptions(nextPage);
+            if (hasMore && !loading) {
+                onLoadMore();
             }
         }
-    }, [loadOptions, label]);
+    }, [onLoadMore, hasMore, loading]);
+
+    const getLabel = (option: T): string => {
+        if (getOptionLabel) return getOptionLabel(option);
+        return option as unknown as string;
+    };
+
+    const getValue = (option: T): string => {
+        if (getOptionValue) return getOptionValue(option);
+        return option as unknown as string;
+    };
+
+    const selectedOption = options.find(opt => getValue(opt) === value) || null;
 
     return (
         <Autocomplete
             sx={sx}
             options={options}
-            value={value}
-            onChange={(_e, newValue) => onChange(newValue || '')}
+            value={selectedOption}
+            onChange={(_e, newValue) => onChange(newValue ? getValue(newValue) : '')}
+            getOptionLabel={getLabel}
             loading={loading}
             slotProps={{
                 listbox: {
@@ -101,5 +90,4 @@ export default function InfiniteScrollableSelect({
         />
     );
 }
-
 
