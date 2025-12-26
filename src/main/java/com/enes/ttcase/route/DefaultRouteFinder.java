@@ -21,6 +21,10 @@ class DefaultRouteFinder implements RouteFinder {
     public List<Route> findRoutes(RouteFindContext context) {
         List<Route> validRoutes = new ArrayList<>();
 
+        if (context.transportations().isEmpty()) {
+            return validRoutes;
+        }
+
         Map<LocationDto, List<TransportationDto>> graph = buildGraph(context);
         Deque<SearchState> stack = new ArrayDeque<>();
 
