@@ -1,45 +1,20 @@
-import {
-    Box,
-    Button,
-    FormControl,
-    FormControlLabel,
-    InputLabel,
-    MenuItem,
-    Paper,
-    Radio,
-    RadioGroup,
-    Select,
-    Typography
-} from "@mui/material";
+import {Box, Button, FormControlLabel, Paper, Radio, RadioGroup, Typography} from "@mui/material";
 import {DatePicker, LocalizationProvider} from "@mui/x-date-pickers";
 import {AdapterDayjs} from "@mui/x-date-pickers/AdapterDayjs";
-import {useEffect, useState} from "react";
-import {Location} from "../../types/location";
+import {useState} from "react";
+import InfiniteScrollableSelect from "../../components/InfiniteScrollableSelect";
 import {Route} from "../../types/route";
 import {locationService} from "../../services/locationService";
 import {routeService} from "../../services/routeService";
 import dayjs, {Dayjs} from "dayjs";
 
 export default function RoutePage() {
-    const [locations, setLocations] = useState<Location[]>([]);
     const [originCode, setOriginCode] = useState("");
     const [destinationCode, setDestinationCode] = useState("");
     const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
     const [routes, setRoutes] = useState<Route[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedRouteIndex, setSelectedRouteIndex] = useState<number | null>(null);
-
-    useEffect(() => {
-        loadLocations();
-    }, []);
-
-    const loadLocations = async () => {
-        try {
-            const response = await locationService.getAll({page: 0, size: 100, sort: "id,desc"});
-            setLocations(response.content);
-        } catch (error) {
-        }
-    };
 
     const handleSearch = async () => {
         if (!originCode || !destinationCode || !selectedDate) return;
@@ -74,23 +49,22 @@ export default function RoutePage() {
                        sx={{width: "100%", p: 2, borderRadius: 0, borderBottom: 2, borderColor: "divider"}}>
                     <Typography variant="h5" sx={{mb: 2, fontWeight: 600}}>Route Search</Typography>
                     <Box sx={{display: "flex", gap: 2, alignItems: "center", flexWrap: "wrap"}}>
-                        <FormControl sx={{minWidth: 200}}>
-                            <InputLabel>Origin</InputLabel>
-                            <Select value={originCode} label="Origin" onChange={(e) => setOriginCode(e.target.value)}>
-                                {locations.map((loc) => (
-                                    <MenuItem key={loc.id} value={loc.locationCode}>{loc.name}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <FormControl sx={{minWidth: 200}}>
-                            <InputLabel>Destination</InputLabel>
-                            <Select value={destinationCode} label="Destination"
-                                    onChange={(e) => setDestinationCode(e.target.value)}>
-                                {locations.map((loc) => (
-                                    <MenuItem key={loc.id} value={loc.locationCode}>{loc.name}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
+                        <InfiniteScrollableSelect
+                            sx={{minWidth: 200}}
+                            value={originCode || null}
+                            onChange={setOriginCode}
+                            label="Origin"
+                            loadData={locationService.getAllCodes}
+                            pageSize={10}
+                        />
+                        <InfiniteScrollableSelect
+                            sx={{minWidth: 200}}
+                            value={destinationCode || null}
+                            onChange={setDestinationCode}
+                            label="Destination"
+                            loadData={locationService.getAllCodes}
+                            pageSize={10}
+                        />
                         <DatePicker label="Date" value={selectedDate} onChange={setSelectedDate}
                                     slotProps={{textField: {sx: {minWidth: 200}}}}/>
                         <Button variant="contained" onClick={handleSearch}
@@ -158,7 +132,12 @@ export default function RoutePage() {
 
                     {selectedRouteIndex !== null && routes[selectedRouteIndex] && (
                         <Box sx={{width: 350, p: 3, bgcolor: "background.paper", overflow: "auto"}}>
-                            <Box sx={{display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3}}>
+                            <Box sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                mb: 3
+                            }}>
                                 <Typography variant="h6" sx={{fontWeight: 600}}>Route Details</Typography>
                                 <Button onClick={() => setSelectedRouteIndex(null)} size="small">Close</Button>
                             </Box>
@@ -229,4 +208,3 @@ export default function RoutePage() {
         </LocalizationProvider>
     );
 }
-
